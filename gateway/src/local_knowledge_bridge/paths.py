@@ -26,9 +26,37 @@ def runtime_python() -> Path:
     return runtime_root() / "python.exe"
 
 
+def cache_root() -> Path:
+    return gateway_root() / ".cache"
+
+
+def index_root() -> Path:
+    return gateway_root() / ".index"
+
+
+def logs_root() -> Path:
+    return gateway_root() / ".logs"
+
+
+def models_root() -> Path:
+    return gateway_root() / ".models"
+
+
+def default_index_db_path() -> Path:
+    return index_root() / "lkb_index.sqlite"
+
+
+def service_log_path() -> Path:
+    return logs_root() / "service.log"
+
+
 def requirements_runtime() -> Path:
     return gateway_root() / "requirements.runtime.txt"
 
 
 def requirements_deep() -> Path:
     return gateway_root() / "requirements.deep.txt"
+
+
+def gateway_script_path(script_name: str) -> Path:
+    return gateway_root() / script_name

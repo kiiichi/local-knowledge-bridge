@@ -1,10 +1,4 @@
-from pathlib import Path
-import sys
+from __future__ import annotations
 
-sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
-
-from local_knowledge_bridge.stub_cli import run_stub
-
-
-if __name__ == "__main__":
-run_stub("lkb_eval")
+print("lkb_eval is scaffolded but not implemented yet.")
+print("Retrieval evaluation will be added after the lexical V1 pipeline is stabilized.")

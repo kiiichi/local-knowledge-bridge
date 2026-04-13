@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from .config_util import load_config, save_config
+from .config import load_config, save_config
 
 
 ENDNOTE_MAX_LIBRARIES = 3
@@ -58,6 +58,8 @@ def _disable_endnote(config: dict, value: str) -> None:
         if item.get("id") == value or item.get("name") == value:
             item["enabled"] = False
     config["endnote_libraries"] = libraries
+    enabled_paths = [item.get("path", "") for item in libraries if item.get("enabled")]
+    config["endnote_library"] = enabled_paths[0] if enabled_paths else ""
 
 
 def main() -> int:

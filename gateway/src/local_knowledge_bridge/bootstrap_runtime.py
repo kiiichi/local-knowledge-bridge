@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import venv
 
-from .config_util import load_config, save_config
+from .config import load_config, save_config
 from .paths import requirements_deep, requirements_runtime, runtime_python, runtime_root
 
 

@@ -33,7 +33,7 @@
   },
   "service": {
     "host": "127.0.0.1",
-    "port": 51234,
+    "port": 53744,
     "preload_models": false,
     "idle_shutdown_seconds": 300,
     "deep_worker_idle_seconds": 60,

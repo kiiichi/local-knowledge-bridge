@@ -13,14 +13,25 @@ This repository is intended to be:
 - the deployment source for Windows users
 - the shared layout used across devices
 
-The core retrieval engine is still under active implementation. This repository already contains:
+This repository is intended to be:
 
-- the skill metadata and prompt surface
-- the gateway directory layout
+- the canonical source repo for development
+- the deployment source for Windows users
+- the shared layout used across devices
+
+The V1 lexical milestone is now implemented. This repository already contains:
+
+- skill metadata and prompt surface
+- gateway directory layout
 - Windows install and deployment scripts
 - config templates
-- wrapper scripts and command skeletons
+- wrapper scripts and working command entrypoints
 - runtime bootstrap support
+- SQLite index schema and index builder
+- Obsidian note and chunk indexing
+- EndNote metadata, attachment, and PDF full-text indexing
+- lexical retrieval with weighted route fusion
+- local HTTP service for `ask`, `search`, and `report`
 
 ## Repository Layout
 
@@ -116,6 +127,14 @@ The bootstrap step creates:
 - a default `lkb_config.json` if missing
 - installed Python dependencies inside the gateway runtime
 
+The runtime requirements now include:
+
+- `PyYAML`
+- `pypdf`
+- `cryptography`
+
+`cryptography` is included so AES-encrypted PDFs can be parsed when `pypdf` needs that backend.
+
 ## Configure Data Sources
 
 After bootstrap, point the gateway at your own local data:
@@ -126,25 +145,90 @@ C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_configure.cmd --endnot
 C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_configure.cmd --show
 ```
 
+## Build The Index
+
+After configuration, build the local index:
+
+```powershell
+C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_index.cmd --force
+C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_index.cmd --status
+```
+
+The default index database is:
+
+- `C:\Users\<you>\.codex\Function\local_knowledge_bridge\.index\lkb_index.sqlite`
+
+## Query The Local Knowledge Base
+
+Primary answer flow:
+
+```powershell
+C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_ask.cmd "passive linear optics 这篇文献是什么？"
+```
+
+Raw merged search:
+
+```powershell
+C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_search.cmd both "passive linear optics" --profile balanced --limit 10
+```
+
+Structured report:
+
+```powershell
+C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_report.cmd "passive linear optics" --target both --profile balanced --limit 8 --read-top 3
+```
+
+JSON output is available on the main commands:
+
+- `lkb_search.cmd ... --json`
+- `lkb_ask.cmd ... --json`
+- `lkb_report.cmd ... --json`
+
+## Service Mode
+
+`Local Knowledge Bridge` is `service-first`.
+
+- `lkb_search`, `lkb_ask`, and `lkb_report` default to the local HTTP service
+- `--no-service` forces direct in-process execution
+- the default service address is `127.0.0.1:53744`
+
+You can start the service explicitly:
+
+```powershell
+C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_service.cmd
+```
+
+The service exposes:
+
+- `GET /health`
+- `POST /search`
+- `POST /ask`
+- `POST /report`
+- `POST /shutdown`
+
 ## Current Status
 
-The repository currently provides a deployment-ready scaffold.
-
-Implemented now:
+Implemented now in V1:
 
 - installation and deployment scripts
 - gateway runtime bootstrap
 - local config creation and editing
-- command wrappers and command skeletons
+- `lkb_index`
+- `lkb_search`
+- `lkb_ask`
+- `lkb_report`
+- `lkb_service`
+- `lkb_doctor`
+- SQLite FTS5 lexical retrieval across Obsidian and EndNote
+- EndNote PDF full-text extraction with locator-aware chunks
+- weighted route fusion across metadata, attachments, and full text
 
-Planned next:
+Current V1 limitations:
 
-- SQLite index schema
-- Obsidian indexing
-- EndNote metadata and PDF indexing
-- local retrieval
-- local HTTP service
-- `fast` / `balanced` / `deep` execution paths
+- `fast` and `balanced` are implemented as lexical retrieval profiles
+- `deep` is reserved but not implemented yet
+- `lkb_eval` remains scaffolded
+- diagnostics are intentionally minimal in this milestone
 
 The command surface already exists so future implementation can stay compatible with the LKB naming:
 
@@ -169,7 +253,7 @@ Recommended flow:
 2. Run `scripts/install_windows.ps1`.
 3. Run `lkb_bootstrap_runtime.cmd`.
 4. Configure the local source paths for that machine.
-5. Build indexes on that machine after the retrieval engine is implemented.
+5. Build indexes on that machine with `lkb_index.cmd --force`.
 
 Do not copy these between devices:
 
@@ -185,6 +269,8 @@ Do not copy these between devices:
 - Use `-Mode Link` during development to avoid duplicate copies.
 - Keep the skill folder thin and procedural.
 - Keep all runtime-generated artifacts out of git.
+- Prefer `lkb_*.cmd` or `lkb_*.ps1` in normal use so the gateway selects its configured runtime automatically.
+- Plain `python gateway\\lkb_*.py` is intended for development only and assumes the required dependencies are already available in that interpreter.
 
 ## Related Workspace Docs
 
