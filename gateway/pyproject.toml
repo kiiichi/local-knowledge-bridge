@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=70", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "local-knowledge-bridge"
+version = "0.1.0.dev0"
+description = "Windows-first local Codex knowledge bridge for Obsidian and EndNote."
+requires-python = ">=3.11"
+dependencies = [
+  "PyYAML>=6.0",
+  "pypdf>=6.0",
+]
+
+[project.optional-dependencies]
+deep = [
+  "sentence-transformers>=5.0",
+  "torch>=2.3",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

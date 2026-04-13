@@ -1,0 +1,4 @@
+interface:
+  display_name: "Local Knowledge Bridge"
+  short_description: "Answer from your local Obsidian and EndNote knowledge sources."
+  default_prompt: "Use $local-knowledge-bridge to answer this by checking my local knowledge base first."

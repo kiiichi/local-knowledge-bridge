@@ -1,0 +1,47 @@
+# OS / editor
+Thumbs.db
+Desktop.ini
+.DS_Store
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.venv/
+venv/
+
+# Packaging
+build/
+dist/
+*.egg-info/
+
+# Gateway generated state
+gateway/.cache/
+gateway/.index/
+gateway/.logs/
+gateway/.models/
+gateway/runtime/
+gateway/__pycache__/
+gateway/src/**/__pycache__/
+
+# Local deployed config and overrides
+gateway/lkb_config.json
+gateway/*.local.json
+
+# Temporary archives / exports
+*.zip
+*.7z
+*.tar
+*.gz
+
+# Local deployment test output
+tmp_codex_home/
