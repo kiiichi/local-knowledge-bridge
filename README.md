@@ -2,7 +2,7 @@
 
 `Local Knowledge Bridge` is an open-source, Windows-first repository for building and deploying a local Codex knowledge skill backed by the user's own files.
 
-The initial target is:
+The current V1 target is:
 
 - `Obsidian`
 - `EndNote`
@@ -13,13 +13,7 @@ This repository is intended to be:
 - the deployment source for Windows users
 - the shared layout used across devices
 
-This repository is intended to be:
-
-- the canonical source repo for development
-- the deployment source for Windows users
-- the shared layout used across devices
-
-The V1 lexical milestone is now implemented. This repository already contains:
+The V1 lexical milestone is implemented. This repository already contains:
 
 - skill metadata and prompt surface
 - gateway directory layout
@@ -31,7 +25,7 @@ The V1 lexical milestone is now implemented. This repository already contains:
 - Obsidian note and chunk indexing
 - EndNote metadata, attachment, and PDF full-text indexing
 - lexical retrieval with weighted route fusion
-- local HTTP service for `ask`, `search`, and `report`
+- a local HTTP service for `ask`, `search`, and `report`
 
 ## Repository Layout
 
@@ -127,7 +121,7 @@ The bootstrap step creates:
 - a default `lkb_config.json` if missing
 - installed Python dependencies inside the gateway runtime
 
-The runtime requirements now include:
+The runtime requirements currently include:
 
 - `PyYAML`
 - `pypdf`
@@ -230,18 +224,100 @@ Current V1 limitations:
 - `lkb_eval` remains scaffolded
 - diagnostics are intentionally minimal in this milestone
 
-The command surface already exists so future implementation can stay compatible with the LKB naming:
+## Current Verified State In This Workspace
 
-- `lkb_ask`
-- `lkb_search`
-- `lkb_report`
-- `lkb_index`
-- `lkb_refresh`
-- `lkb_service`
-- `lkb_configure`
-- `lkb_doctor`
-- `lkb_eval`
-- `lkb_bootstrap_runtime`
+These facts were verified on this machine during the current implementation pass:
+
+- configured Obsidian vault:
+  - `C:\Users\kichi\Documents\kichi@git\kc-notes`
+- configured EndNote library:
+  - `C:\Users\kichi\Documents\My EndNote Library.enl`
+- active engineering service port:
+  - `127.0.0.1:53744`
+- current index snapshot after the latest successful full rebuild:
+  - `obsidian_notes = 112`
+  - `obsidian_chunks = 1994`
+  - `endnote_docs = 583`
+  - `endnote_attachments = 655`
+  - `endnote_fulltext = 29511`
+- latest full rebuild status:
+  - completed successfully
+  - `warnings = []`
+- service lifecycle:
+  - `lkb_search` can auto-start the service
+  - `/health` and `/shutdown` were both verified
+- `deep` behavior:
+  - currently fails explicitly with a not-implemented message
+
+Important validation nuance:
+
+- the latest full-corpus `lkb_index --force` succeeded before the final `pdf_text.py` logging-suppression adjustment
+- after that final adjustment, targeted extraction of several large PDFs was rechecked successfully without noisy console output
+- if you want to reconfirm the final PDF logging behavior end-to-end, rerun `lkb_index.cmd --force`
+
+## Testing
+
+Recommended test order on Windows:
+
+1. Verify configuration and runtime:
+
+```powershell
+C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_configure.cmd --show
+C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_doctor.cmd --json
+```
+
+2. Verify index status:
+
+```powershell
+C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_index.cmd --status
+```
+
+3. If needed, rebuild the index:
+
+```powershell
+C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_index.cmd --force
+```
+
+4. Test direct lexical search without the service:
+
+```powershell
+C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_search.cmd both "passive linear optics" --profile balanced --limit 5 --no-service
+```
+
+5. Test answer generation without the service:
+
+```powershell
+C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_ask.cmd "passive linear optics 这篇文献是什么？" --limit 3 --no-service
+```
+
+6. Test structured report output:
+
+```powershell
+C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_report.cmd "passive linear optics" --profile balanced --limit 3 --json --no-service
+```
+
+7. Test the default service-first path:
+
+```powershell
+C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_search.cmd both "passive linear optics" --limit 3
+```
+
+8. Test the service endpoints explicitly:
+
+```powershell
+Invoke-RestMethod -Uri "http://127.0.0.1:53744/health" | ConvertTo-Json -Depth 4
+Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:53744/shutdown" | ConvertTo-Json -Depth 4
+```
+
+9. Confirm the current V1 `deep` placeholder behavior:
+
+```powershell
+C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_search.cmd both "passive linear optics" --profile deep --no-service
+```
+
+Expected result:
+
+- the command should fail clearly with a not-implemented message
 
 ## Cross-Device Workflow
 
@@ -270,7 +346,7 @@ Do not copy these between devices:
 - Keep the skill folder thin and procedural.
 - Keep all runtime-generated artifacts out of git.
 - Prefer `lkb_*.cmd` or `lkb_*.ps1` in normal use so the gateway selects its configured runtime automatically.
-- Plain `python gateway\\lkb_*.py` is intended for development only and assumes the required dependencies are already available in that interpreter.
+- Plain `python gateway\lkb_*.py` is intended for development only and assumes the required dependencies are already available in that interpreter.
 
 ## Related Workspace Docs
 
@@ -278,4 +354,4 @@ If you are working from the broader analysis workspace, the design notes live un
 
 - `../rebuild/`
 
-That folder documents the target architecture and the clean-room reconstruction path.
+That folder documents the target architecture, recovery path, and current validation state.
