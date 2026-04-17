@@ -38,7 +38,7 @@ def _update_endnote_libraries(config: dict, path: str, display_name: str | None)
             config["endnote_libraries"] = libraries
             return
     if len(libraries) >= ENDNOTE_MAX_LIBRARIES:
-        raise SystemExit(f"At most {ENDNOTE_MAX_LIBRARIES} EndNote libraries are supported in the current scaffold.")
+        raise SystemExit(f"At most {ENDNOTE_MAX_LIBRARIES} EndNote libraries are supported in Local Knowledge Bridge V1.")
     library_id = _normalize_endnote_id(display_name, len(libraries) + 1)
     libraries.append(
         {

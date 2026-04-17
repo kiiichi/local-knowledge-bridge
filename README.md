@@ -1,31 +1,12 @@
 # Local Knowledge Bridge
 
-`Local Knowledge Bridge` is an open-source, Windows-first repository for building and deploying a local Codex knowledge skill backed by the user's own files.
+`Local Knowledge Bridge` is the canonical open-source repository for the new `lkb` system.  
+This repo is the source of truth for implementation, Windows deployment, and cross-device development.
 
-The current V1 target is:
+Current scope:
 
 - `Obsidian`
 - `EndNote`
-
-This repository is intended to be:
-
-- the canonical source repo for development
-- the deployment source for Windows users
-- the shared layout used across devices
-
-The V1 lexical milestone is implemented. This repository already contains:
-
-- skill metadata and prompt surface
-- gateway directory layout
-- Windows install and deployment scripts
-- config templates
-- wrapper scripts and working command entrypoints
-- runtime bootstrap support
-- SQLite index schema and index builder
-- Obsidian note and chunk indexing
-- EndNote metadata, attachment, and PDF full-text indexing
-- lexical retrieval with weighted route fusion
-- a local HTTP service for `ask`, `search`, and `report`
 
 ## Repository Layout
 
@@ -47,11 +28,66 @@ local-knowledge-bridge/
    +- install_windows.ps1
 ```
 
-## Naming Convention
+## Naming Boundary
 
-- `kb_*` is reserved for the legacy reference package under `function/kb_gateway/` and `skills/kb-answer/`.
-- `lkb_*` is the active engineering command surface for `Local Knowledge Bridge`.
-- New implementation work in this repository should use `lkb_*` consistently.
+- `kb_*` is the legacy reference namespace under `../function/kb_gateway/` and `../skills/kb-answer/`.
+- `lkb_*` is the active engineering namespace in this repository.
+- New code and new docs in this repository should always use `lkb_*`.
+
+## Current Implementation Status
+
+Implemented now:
+
+- Windows install and deployment scripts
+- runtime bootstrap
+- local config creation and editing
+- `lkb_index`
+- `lkb_search`
+- `lkb_ask`
+- `lkb_report`
+- `lkb_service`
+- `lkb_doctor`
+- `lkb_eval`
+- Obsidian indexing
+- EndNote metadata / attachment / PDF full-text indexing
+- lexical retrieval with weighted route fusion
+- service-first execution on `127.0.0.1:53744`
+
+Not implemented yet:
+
+- `deep`
+- remote release lookup beyond local version files
+
+Current retrieval shape:
+
+- `SQLite FTS5` route-level lexical retrieval
+- weighted reciprocal rank fusion
+- `fast` and `balanced` are usable
+- `deep` fails explicitly
+
+## Locked Next Development Route
+
+The next work on this repository is already defined:
+
+1. Restore real `mode` execution semantics.  
+   The CLI still exposes `--mode`, but `mode` has not yet entered the request models, service payloads, and retrieval execution path.
+
+2. Restore the legacy `kb` lightweight hybrid scoring path.  
+   The current `lkb` retrieval stack is still lexical + RRF only. The next stage should recover the old token-hit, expanded-token, char-ngram, and FTS bonus logic in a new `src/local_knowledge_bridge/scoring.py`.
+
+3. Move route weights and scoring parameters into configuration.  
+   The next stage should make the retrieval weights and scoring constants observable and configurable through `constants.py` and `templates/lkb_config.template.json`.
+
+4. Implement `deep` with the same technical path as legacy `kb`.  
+   The target path is:
+   - hybrid recall
+   - semantic scoring with `BAAI/bge-m3`
+   - semantic route fusion
+   - reranker with `BAAI/bge-reranker-v2-m3`
+   - isolated `deep_worker.py`
+
+5. Keep the repository modular and cross-device deployable.  
+   The new retrieval and deep code should be added as modules under `src/local_knowledge_bridge/`, not as a new monolith.
 
 ## What Gets Deployed
 
@@ -62,7 +98,7 @@ When installed, this repository deploys to:
 - gateway:
   - `C:\Users\<you>\.codex\Function\local_knowledge_bridge`
 
-The repository source should remain clean. Runtime-generated files are not committed:
+The deployed gateway creates machine-local state:
 
 - `gateway/runtime/`
 - `gateway/.cache/`
@@ -71,7 +107,38 @@ The repository source should remain clean. Runtime-generated files are not commi
 - `gateway/.models/`
 - `gateway/lkb_config.json`
 
-On a real installation, those are created in the deployed gateway directory.
+These paths are intentionally not committed to git.
+
+## Git Policy
+
+Tracked in git:
+
+- `skill/**`
+- `scripts/install_windows.*`
+- `gateway/lkb_*.cmd`
+- `gateway/lkb_*.ps1`
+- `gateway/lkb_*.py`
+- `gateway/deep_worker.py`
+- `gateway/templates/lkb_config.template.json`
+- `gateway/requirements.runtime.txt`
+- `gateway/requirements.deep.txt`
+- `gateway/pyproject.toml`
+- `gateway/VERSION`
+- `gateway/VERSION_PREFIX`
+- `gateway/eval/cases.jsonl`
+- `gateway/src/local_knowledge_bridge/**/*.py`
+- repository documentation
+
+Not tracked in git:
+
+- `gateway/runtime/`
+- `gateway/.cache/`
+- `gateway/.index/`
+- `gateway/.logs/`
+- `gateway/.models/`
+- `gateway/lkb_config.json`
+- `__pycache__/`
+- local test deployment directories
 
 ## Install On Windows
 
@@ -81,57 +148,37 @@ On a real installation, those are created in the deployed gateway directory.
 - Codex desktop or another Codex environment that uses `~/.codex`
 - Python 3.11+ available as `py` or `python`
 
-### Option 1: Normal Install
-
-Copy the skill and gateway into your `.codex` directory:
+### Option 1: Copy Install
 
 ```powershell
 cd <repo>\local-knowledge-bridge
-.\scripts\install_windows.ps1
+.\scripts\install_windows.ps1 -Mode Copy
 ```
 
 ### Option 2: Development Install
-
-Use directory junctions so edits in the repo are reflected immediately in the deployed Codex directories:
 
 ```powershell
 cd <repo>\local-knowledge-bridge
 .\scripts\install_windows.ps1 -Mode Link
 ```
 
-This is the recommended mode for active development.
+`-Mode Link` is the recommended option for active development because edits in the repo are reflected immediately in the deployed Codex directories.
 
-## Bootstrap The Gateway Runtime
+## Bootstrap And Configure
 
-After installation, create a local Python runtime for the gateway:
+Create the local runtime:
 
 ```powershell
 C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_bootstrap_runtime.cmd
 ```
 
-To include deep-mode dependencies during bootstrap:
+Include deep dependencies in the runtime:
 
 ```powershell
 C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_bootstrap_runtime.cmd --include-deep
 ```
 
-The bootstrap step creates:
-
-- `runtime/py311/`
-- a default `lkb_config.json` if missing
-- installed Python dependencies inside the gateway runtime
-
-The runtime requirements currently include:
-
-- `PyYAML`
-- `pypdf`
-- `cryptography`
-
-`cryptography` is included so AES-encrypted PDFs can be parsed when `pypdf` needs that backend.
-
-## Configure Data Sources
-
-After bootstrap, point the gateway at your own local data:
+Configure data sources:
 
 ```powershell
 C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_configure.cmd --obsidian "D:\Notes\Vault"
@@ -139,219 +186,96 @@ C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_configure.cmd --endnot
 C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_configure.cmd --show
 ```
 
-## Build The Index
-
-After configuration, build the local index:
+Build the local index:
 
 ```powershell
 C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_index.cmd --force
 C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_index.cmd --status
 ```
 
-The default index database is:
+## Query And Service
 
-- `C:\Users\<you>\.codex\Function\local_knowledge_bridge\.index\lkb_index.sqlite`
-
-## Query The Local Knowledge Base
-
-Primary answer flow:
+Ask:
 
 ```powershell
-C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_ask.cmd "passive linear optics 这篇文献是什么？"
+C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_ask.cmd "What is the passive linear optics paper about?"
 ```
 
-Raw merged search:
+Search:
 
 ```powershell
 C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_search.cmd both "passive linear optics" --profile balanced --limit 10
 ```
 
-Structured report:
+Report:
 
 ```powershell
 C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_report.cmd "passive linear optics" --target both --profile balanced --limit 8 --read-top 3
 ```
 
-JSON output is available on the main commands:
+Current service contract:
 
-- `lkb_search.cmd ... --json`
-- `lkb_ask.cmd ... --json`
-- `lkb_report.cmd ... --json`
-
-## Service Mode
-
-`Local Knowledge Bridge` is `service-first`.
-
-- `lkb_search`, `lkb_ask`, and `lkb_report` default to the local HTTP service
-- `--no-service` forces direct in-process execution
-- the default service address is `127.0.0.1:53744`
-
-You can start the service explicitly:
-
-```powershell
-C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_service.cmd
-```
-
-The service exposes:
-
+- host: `127.0.0.1`
+- port: `53744`
 - `GET /health`
 - `POST /search`
 - `POST /ask`
 - `POST /report`
 - `POST /shutdown`
 
-## Current Status
+## Cross-Device Development And Deployment
 
-Implemented now in V1:
+Use this repository as the only source of code on every machine.
 
-- installation and deployment scripts
-- gateway runtime bootstrap
-- local config creation and editing
-- `lkb_index`
-- `lkb_search`
-- `lkb_ask`
-- `lkb_report`
-- `lkb_service`
-- `lkb_doctor`
-- SQLite FTS5 lexical retrieval across Obsidian and EndNote
-- EndNote PDF full-text extraction with locator-aware chunks
-- weighted route fusion across metadata, attachments, and full text
+Each machine should:
 
-Current V1 limitations:
+1. clone the repository
+2. install with `Copy` or `Link`
+3. run `lkb_bootstrap_runtime`
+4. install deep dependencies locally if needed
+5. configure local Obsidian / EndNote paths
+6. build the index locally
+7. download deep models locally when deep is implemented
 
-- `fast` and `balanced` are implemented as lexical retrieval profiles
-- `deep` is reserved but not implemented yet
-- `lkb_eval` remains scaffolded
-- diagnostics are intentionally minimal in this milestone
+Do not copy these between machines:
 
-## Current Verified State In This Workspace
+- `.index`
+- `.cache`
+- `.logs`
+- `lkb_config.json`
+- `.models` by default
 
-These facts were verified on this machine during the current implementation pass:
+## Current Verified Workspace Snapshot
 
-- configured Obsidian vault:
-  - `C:\Users\kichi\Documents\kichi@git\kc-notes`
-- configured EndNote library:
-  - `C:\Users\kichi\Documents\My EndNote Library.enl`
-- active engineering service port:
-  - `127.0.0.1:53744`
-- current index snapshot after the latest successful full rebuild:
-  - `obsidian_notes = 112`
-  - `obsidian_chunks = 1994`
+The current workspace has already verified:
+
+- Obsidian vault: `C:\Users\kichi\Documents\kichi@git\kc-notes`
+- EndNote library: `C:\Users\kichi\Documents\My EndNote Library.enl`
+- service port: `127.0.0.1:53744`
+- index counts:
+  - `obsidian_notes = 114`
+  - `obsidian_chunks = 2015`
   - `endnote_docs = 583`
   - `endnote_attachments = 655`
   - `endnote_fulltext = 29511`
-- latest full rebuild status:
-  - completed successfully
-  - `warnings = []`
-- service lifecycle:
-  - `lkb_search` can auto-start the service
-  - `/health` and `/shutdown` were both verified
-- `deep` behavior:
-  - currently fails explicitly with a not-implemented message
+- `lkb_doctor --json` snapshot:
+  - `obsidian_stale = true`
+  - `endnote_stale = true`
+  - `obsidian_changed_notes = 3`
+  - `endnote_changed_pdfs = 0`
+  - `service.running = false`
+- `lkb_eval` snapshot:
+  - `balanced`: `Recall@5 = 1.0`, `Recall@10 = 1.0`, `MRR@10 = 1.0`, `nDCG@10 = 1.0`, `AvgLatencyMs ~= 139.0`
+  - `baseline`: `Recall@5 = 1.0`, `Recall@10 = 1.0`, `MRR@10 = 1.0`, `nDCG@10 = 1.0`, `AvgLatencyMs ~= 137.0`
 
-Important validation nuance:
+The current bundled `gateway/eval/cases.jsonl` is a tomography-focused smoke regression set. It should be extended further with paraphrase EndNote cases and Obsidian-biased cases as the repo evolves.
 
-- the latest full-corpus `lkb_index --force` succeeded before the final `pdf_text.py` logging-suppression adjustment
-- after that final adjustment, targeted extraction of several large PDFs was rechecked successfully without noisy console output
-- if you want to reconfirm the final PDF logging behavior end-to-end, rerun `lkb_index.cmd --force`
+## Related Docs
 
-## Testing
+If you are working from the broader workspace, read in this order:
 
-Recommended test order on Windows:
-
-1. Verify configuration and runtime:
-
-```powershell
-C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_configure.cmd --show
-C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_doctor.cmd --json
-```
-
-2. Verify index status:
-
-```powershell
-C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_index.cmd --status
-```
-
-3. If needed, rebuild the index:
-
-```powershell
-C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_index.cmd --force
-```
-
-4. Test direct lexical search without the service:
-
-```powershell
-C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_search.cmd both "passive linear optics" --profile balanced --limit 5 --no-service
-```
-
-5. Test answer generation without the service:
-
-```powershell
-C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_ask.cmd "passive linear optics 这篇文献是什么？" --limit 3 --no-service
-```
-
-6. Test structured report output:
-
-```powershell
-C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_report.cmd "passive linear optics" --profile balanced --limit 3 --json --no-service
-```
-
-7. Test the default service-first path:
-
-```powershell
-C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_search.cmd both "passive linear optics" --limit 3
-```
-
-8. Test the service endpoints explicitly:
-
-```powershell
-Invoke-RestMethod -Uri "http://127.0.0.1:53744/health" | ConvertTo-Json -Depth 4
-Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:53744/shutdown" | ConvertTo-Json -Depth 4
-```
-
-9. Confirm the current V1 `deep` placeholder behavior:
-
-```powershell
-C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_search.cmd both "passive linear optics" --profile deep --no-service
-```
-
-Expected result:
-
-- the command should fail clearly with a not-implemented message
-
-## Cross-Device Workflow
-
-Use this repository as the source of truth on every machine.
-
-Recommended flow:
-
-1. Clone or download this repository on the new machine.
-2. Run `scripts/install_windows.ps1`.
-3. Run `lkb_bootstrap_runtime.cmd`.
-4. Configure the local source paths for that machine.
-5. Build indexes on that machine with `lkb_index.cmd --force`.
-
-Do not copy these between devices:
-
-- `.index`
-- `.logs`
-- `.cache`
-- `.models` unless you intentionally want to reuse downloaded deep models
-- `lkb_config.json` if source paths differ
-
-## Development Notes
-
-- Edit the implementation in this repository, not in `.codex`.
-- Use `-Mode Link` during development to avoid duplicate copies.
-- Keep the skill folder thin and procedural.
-- Keep all runtime-generated artifacts out of git.
-- Prefer `lkb_*.cmd` or `lkb_*.ps1` in normal use so the gateway selects its configured runtime automatically.
-- Plain `python gateway\lkb_*.py` is intended for development only and assumes the required dependencies are already available in that interpreter.
-
-## Related Workspace Docs
-
-If you are working from the broader analysis workspace, the design notes live under:
-
-- `../rebuild/`
-
-That folder documents the target architecture, recovery path, and current validation state.
+1. `../agents.md`
+2. `README.md`
+3. `../rebuild/README.md`
+4. `../rebuild/docs/03-architecture-and-modules.md`
+5. `../rebuild/docs/05-implementation-roadmap.md`

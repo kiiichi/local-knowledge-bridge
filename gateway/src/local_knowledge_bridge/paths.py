@@ -60,3 +60,19 @@ def requirements_deep() -> Path:
 
 def gateway_script_path(script_name: str) -> Path:
     return gateway_root() / script_name
+
+
+def version_path() -> Path:
+    return gateway_root() / "VERSION"
+
+
+def version_prefix_path() -> Path:
+    return gateway_root() / "VERSION_PREFIX"
+
+
+def eval_root() -> Path:
+    return gateway_root() / "eval"
+
+
+def eval_cases_path() -> Path:
+    return eval_root() / "cases.jsonl"
