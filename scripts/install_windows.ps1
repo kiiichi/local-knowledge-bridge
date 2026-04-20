@@ -43,11 +43,25 @@ function Copy-Or-LinkDirectory {
 function Resolve-PythonCommand {
   $py = Get-Command py -ErrorAction SilentlyContinue
   if ($py) {
-    return @('py', '-3')
+    foreach ($selector in @('-3.11', '-3.12', '-3.13', '-3')) {
+      try {
+        & $py.Source $selector -c "import sys; assert sys.version_info >= (3, 11)" *> $null
+        if ($LASTEXITCODE -eq 0) {
+          return @($py.Source, $selector)
+        }
+      } catch {
+      }
+    }
   }
   $python = Get-Command python -ErrorAction SilentlyContinue
   if ($python) {
-    return @($python.Source)
+    try {
+      & $python.Source -c "import sys; assert sys.version_info >= (3, 11)" *> $null
+      if ($LASTEXITCODE -eq 0) {
+        return @($python.Source)
+      }
+    } catch {
+    }
   }
   throw 'Python 3.11+ is required. Install Python and ensure `py` or `python` is on PATH.'
 }

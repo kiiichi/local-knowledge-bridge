@@ -13,7 +13,7 @@ from .normalize import build_fts_query, make_snippet, parse_year_filters, year_m
 from .obsidian import index_obsidian
 from .ranking import fuse_hits
 from .schema import clear_index, ensure_schema
-from .service_models import SearchHit, SearchRequest
+from .service_models import SearchHit, SearchRequest, normalize_mode
 from .source_guard import ensure_gateway_output_path
 
 
@@ -160,12 +160,14 @@ def _query_route(
     fts_query: str,
     raw_query: str,
     candidate_limit: int,
+    mode: str,
     route: str,
     source: str,
     folder: str | None,
     years: list[tuple[int, int]],
     endnote_library: str | None,
 ) -> list[SearchHit]:
+    _ = mode
     rows = connection.execute(sql, (fts_query, candidate_limit)).fetchall()
     hits = [_build_hit(row, route, source, raw_query) for row in rows]
     hits = _apply_common_filters(hits, folder=folder, years=years, endnote_library=endnote_library)
@@ -176,6 +178,8 @@ def search_local(config: dict, request: SearchRequest) -> dict:
     profile = selected_profile(config, request.profile)
     if profile == "deep":
         raise SystemExit("The deep profile is not implemented in Local Knowledge Bridge V1. Use fast or balanced.")
+    requested_mode = normalize_mode(getattr(request, "mode", None))
+    effective_mode = requested_mode
 
     target = request.target.lower()
     if target not in SUPPORTED_TARGETS:
@@ -217,6 +221,7 @@ def search_local(config: dict, request: SearchRequest) -> dict:
                 fts_query=fts_query,
                 raw_query=request.query,
                 candidate_limit=candidate_limit,
+                mode=effective_mode,
                 route="obsidian_notes",
                 source="obsidian",
                 folder=request.folder,
@@ -248,6 +253,7 @@ def search_local(config: dict, request: SearchRequest) -> dict:
                 fts_query=fts_query,
                 raw_query=request.query,
                 candidate_limit=candidate_limit,
+                mode=effective_mode,
                 route="obsidian_chunks",
                 source="obsidian",
                 folder=request.folder,
@@ -281,6 +287,7 @@ def search_local(config: dict, request: SearchRequest) -> dict:
                 fts_query=fts_query,
                 raw_query=request.query,
                 candidate_limit=candidate_limit,
+                mode=effective_mode,
                 route="endnote_docs",
                 source="endnote",
                 folder=request.folder,
@@ -313,6 +320,7 @@ def search_local(config: dict, request: SearchRequest) -> dict:
                 fts_query=fts_query,
                 raw_query=request.query,
                 candidate_limit=candidate_limit,
+                mode=effective_mode,
                 route="endnote_attachments",
                 source="endnote",
                 folder=request.folder,
@@ -345,6 +353,7 @@ def search_local(config: dict, request: SearchRequest) -> dict:
                 fts_query=fts_query,
                 raw_query=request.query,
                 candidate_limit=candidate_limit,
+                mode=effective_mode,
                 route="endnote_fulltext",
                 source="endnote",
                 folder=request.folder,
@@ -358,9 +367,11 @@ def search_local(config: dict, request: SearchRequest) -> dict:
             "query": request.query,
             "target": target,
             "profile": profile,
+            "mode": requested_mode,
             "hits": [hit.to_dict() for hit in fused_hits],
             "total_hits": len(all_hits),
             "debug": {
+                "effective_mode": effective_mode,
                 "route_counts": {route: len(hits) for route, hits in route_hits.items()},
                 "db_path": str(_index_db_path(config)),
                 "folder": request.folder,

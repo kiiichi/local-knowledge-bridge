@@ -9,7 +9,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-from .paths import gateway_script_path, runtime_python
+from .paths import gateway_script_path, runtime_python, runtime_root
 
 
 def _base_url(config: dict) -> str:
@@ -20,15 +20,42 @@ def _base_url(config: dict) -> str:
 
 
 def _preferred_python(config: dict) -> str:
-    python_home = str(config.get("runtime", {}).get("python_home", "") or "")
-    if python_home:
-        for suffix in ["python.exe", "Scripts/python.exe"]:
-            candidate = Path(python_home) / suffix
-            if candidate.exists():
-                return str(candidate)
-    runtime_candidate = runtime_python()
-    if runtime_candidate.exists():
-        return str(runtime_candidate)
+    def usable(candidate: Path) -> bool:
+        if not candidate.exists():
+            return False
+        try:
+            completed = subprocess.run(
+                [str(candidate), "-c", "import sys"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=10,
+                check=False,
+            )
+        except Exception:
+            return False
+        return completed.returncode == 0
+
+    runtime_home = str(config.get("runtime", {}).get("python_home", "") or "") or str(runtime_root())
+    runtime_candidates = [Path(runtime_home) / "python.exe", Path(runtime_home) / "Scripts" / "python.exe", runtime_python()]
+    broken_candidates: list[str] = []
+    seen: set[str] = set()
+    for candidate in runtime_candidates:
+        candidate_text = str(candidate)
+        if candidate_text in seen:
+            continue
+        seen.add(candidate_text)
+        if not candidate.exists():
+            continue
+        if usable(candidate):
+            return candidate_text
+        broken_candidates.append(candidate_text)
+    if broken_candidates:
+        raise SystemExit(
+            "Embedded LKB runtime is present but not executable. "
+            f"Broken candidates: {', '.join(broken_candidates)}. "
+            "This usually means the runtime depends on a base interpreter outside the current sandbox. "
+            "Re-run lkb_bootstrap_runtime to repair it."
+        )
     return sys.executable
 
 

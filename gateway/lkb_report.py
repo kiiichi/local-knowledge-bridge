@@ -11,7 +11,7 @@ from local_knowledge_bridge.config import load_config
 from local_knowledge_bridge.reporting import build_report_payload
 from local_knowledge_bridge.retrieval import search_local
 from local_knowledge_bridge.service_client import request_json
-from local_knowledge_bridge.service_models import SearchRequest
+from local_knowledge_bridge.service_models import ReportRequest
 
 
 def parse_args() -> argparse.Namespace:
@@ -32,39 +32,31 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def main() -> int:
-    args = parse_args()
-    config = load_config()
-    request = SearchRequest(
+def build_request(args: argparse.Namespace) -> ReportRequest:
+    return ReportRequest(
         query=args.query,
         target=args.target,
         profile=args.profile,
+        mode=args.mode,
         folder=args.folder,
         endnote_library=args.endnote_library,
         years=args.years,
         limit=args.limit,
+        read_top=args.read_top,
         auto_refresh=args.auto_refresh,
         refresh_now=args.refresh_now,
     )
+
+
+def main() -> int:
+    args = parse_args()
+    config = load_config()
+    request = build_request(args)
+    request_payload = request.to_payload()
     if args.no_service:
-        payload = build_report_payload(args.query, search_local(config, request), args.read_top)
+        payload = build_report_payload(request.query, search_local(config, request), request.read_top)
     else:
-        payload = request_json(
-            config,
-            "/report",
-            payload={
-                "query": args.query,
-                "target": args.target,
-                "profile": args.profile,
-                "folder": args.folder,
-                "endnote_library": args.endnote_library,
-                "years": args.years,
-                "limit": args.limit,
-                "read_top": args.read_top,
-                "auto_refresh": args.auto_refresh,
-                "refresh_now": args.refresh_now,
-            },
-        )
+        payload = request_json(config, "/report", payload=request_payload)
     if args.json:
         print(json.dumps(payload, ensure_ascii=False, indent=2))
     else:

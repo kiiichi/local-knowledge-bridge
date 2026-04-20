@@ -33,16 +33,12 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def main() -> int:
-    args = parse_args()
-    config = load_config()
-    if args.show_config:
-        print(json.dumps(config, ensure_ascii=False, indent=2))
-
-    request = SearchRequest(
+def build_request(args: argparse.Namespace) -> SearchRequest:
+    return SearchRequest(
         query=args.query,
         target=args.target,
         profile=args.profile,
+        mode=args.mode,
         folder=args.folder,
         endnote_library=args.endnote_library,
         years=args.years,
@@ -51,10 +47,20 @@ def main() -> int:
         auto_refresh=args.auto_refresh,
         refresh_now=args.refresh_now,
     )
+
+
+def main() -> int:
+    args = parse_args()
+    config = load_config()
+    if args.show_config:
+        print(json.dumps(config, ensure_ascii=False, indent=2))
+
+    request = build_request(args)
+    request_payload = request.to_payload()
     if args.no_service:
         payload = search_local(config, request)
     else:
-        payload = request_json(config, "/search", payload=request.__dict__)
+        payload = request_json(config, "/search", payload=request_payload)
     if args.json:
         print(json.dumps(payload, ensure_ascii=False, indent=2))
     else:

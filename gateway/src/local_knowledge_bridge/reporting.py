@@ -93,14 +93,20 @@ def build_answer_payload(question: str, payload: dict[str, Any]) -> dict[str, An
 
 def build_report_payload(query: str, payload: dict[str, Any], read_top: int) -> dict[str, Any]:
     hits = payload.get("hits", [])
+    debug = payload.get("debug") or {}
+    mode = payload.get("mode") or "-"
+    effective_mode = debug.get("effective_mode")
     lines = [
         f"QUERY: {query}",
         f"TARGET: {payload.get('target')}",
         f"PROFILE: {payload.get('profile')}",
+        f"MODE: {mode}",
         f"TOTAL_HITS: {payload.get('total_hits')}",
         "",
         "HITS",
     ]
+    if effective_mode and effective_mode != mode:
+        lines.insert(4, f"EFFECTIVE_MODE: {effective_mode}")
     if not hits:
         lines.append("No local evidence found.")
     else:

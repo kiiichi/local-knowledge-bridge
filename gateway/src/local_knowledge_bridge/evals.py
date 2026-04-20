@@ -26,6 +26,7 @@ def evaluate_cases(config: dict | None = None, *, profile: str = "balanced", bas
     per_case: list[dict] = []
 
     active_profile = "fast" if baseline else profile
+    active_mode = "lexical" if baseline else "hybrid"
     for case in rows:
         started = time.perf_counter()
         result = search_local(
@@ -37,6 +38,7 @@ def evaluate_cases(config: dict | None = None, *, profile: str = "balanced", bas
                 folder=case.get("folder"),
                 endnote_library=case.get("endnote_library"),
                 profile=active_profile,
+                mode=active_mode,
                 limit=20,
                 auto_refresh=False,
                 refresh_now=False,

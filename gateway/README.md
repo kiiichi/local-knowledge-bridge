@@ -22,6 +22,7 @@ The current retrieval stack is:
 - `SQLite FTS5`
 - Obsidian note and chunk indexing
 - EndNote metadata, attachments, and PDF full-text indexing
+- real `mode` request / service / retrieval semantics
 - weighted reciprocal rank fusion across routes
 
 Current V1 notes:
@@ -33,3 +34,11 @@ Current V1 notes:
 - the current bundled cases target non-Gaussian-state tomography, homodyne tomography, third-order OPO state tomography, and single-mode squeezed-light tomography
 
 Generated directories such as `runtime/`, `.cache/`, `.index/`, `.logs/`, and `.models/` are intentionally excluded from git and should be created after deployment.
+
+## Runtime Bootstrap
+
+The gateway does not depend on any legacy `kb` files when deployed on a new machine.
+
+- `lkb_bootstrap_runtime` uses the machine's available Python to build an embedded runtime inside `gateway/runtime/py311`
+- when several Python versions are installed, the bootstrap path prefers Python `3.11`
+- the resulting embedded runtime is the interpreter that wrapper scripts and service auto-start use afterward

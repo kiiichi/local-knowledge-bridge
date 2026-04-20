@@ -51,6 +51,8 @@ Implemented now:
 - Obsidian indexing
 - EndNote metadata / attachment / PDF full-text indexing
 - lexical retrieval with weighted route fusion
+- real `mode` execution semantics across CLI, service, and retrieval payloads
+- self-contained embedded runtime bootstrap
 - service-first execution on `127.0.0.1:53744`
 
 Not implemented yet:
@@ -61,24 +63,22 @@ Not implemented yet:
 Current retrieval shape:
 
 - `SQLite FTS5` route-level lexical retrieval
+- `mode` is now a real request / response contract
 - weighted reciprocal rank fusion
-- `fast` and `balanced` are usable
+- `fast` and `balanced` are usable but still lexical-ordered for now
 - `deep` fails explicitly
 
 ## Locked Next Development Route
 
-The next work on this repository is already defined:
+Step 1 is complete. The next work on this repository is:
 
-1. Restore real `mode` execution semantics.  
-   The CLI still exposes `--mode`, but `mode` has not yet entered the request models, service payloads, and retrieval execution path.
-
-2. Restore the legacy `kb` lightweight hybrid scoring path.  
+1. Restore the legacy `kb` lightweight hybrid scoring path.  
    The current `lkb` retrieval stack is still lexical + RRF only. The next stage should recover the old token-hit, expanded-token, char-ngram, and FTS bonus logic in a new `src/local_knowledge_bridge/scoring.py`.
 
-3. Move route weights and scoring parameters into configuration.  
+2. Move route weights and scoring parameters into configuration.  
    The next stage should make the retrieval weights and scoring constants observable and configurable through `constants.py` and `templates/lkb_config.template.json`.
 
-4. Implement `deep` with the same technical path as legacy `kb`.  
+3. Implement `deep` with the same technical path as legacy `kb`.  
    The target path is:
    - hybrid recall
    - semantic scoring with `BAAI/bge-m3`
@@ -86,7 +86,7 @@ The next work on this repository is already defined:
    - reranker with `BAAI/bge-reranker-v2-m3`
    - isolated `deep_worker.py`
 
-5. Keep the repository modular and cross-device deployable.  
+4. Keep the repository modular and cross-device deployable.  
    The new retrieval and deep code should be added as modules under `src/local_knowledge_bridge/`, not as a new monolith.
 
 ## What Gets Deployed
@@ -146,7 +146,14 @@ Not tracked in git:
 
 - Windows PowerShell
 - Codex desktop or another Codex environment that uses `~/.codex`
-- Python 3.11+ available as `py` or `python`
+- standalone Python available as `py` or `python`
+
+Runtime bootstrap notes:
+
+- `Local Knowledge Bridge` does not require any `kb` files or any legacy `kb` runtime on a new machine.
+- `scripts/install_windows.ps1` and `lkb_bootstrap_runtime` prefer Python `3.11` when multiple versions are installed.
+- bootstrap creates a machine-local embedded runtime under `gateway/runtime/py311`.
+- if only Python `3.12` or `3.13` is installed, bootstrap can still build the local runtime, but `3.11` remains the preferred version for the eventual deep stack.
 
 ### Option 1: Copy Install
 
@@ -171,6 +178,12 @@ Create the local runtime:
 ```powershell
 C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_bootstrap_runtime.cmd
 ```
+
+This bootstrap step is self-contained:
+
+- it starts from the currently selected system Python on that machine
+- it builds the embedded `gateway/runtime/py311` runtime for `lkb`
+- it does not read from `../function/kb_gateway/`
 
 Include deep dependencies in the runtime:
 

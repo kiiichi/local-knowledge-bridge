@@ -3,6 +3,32 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+DEFAULT_MODE = "hybrid"
+SUPPORTED_MODES = frozenset({"lexical", "hybrid", "semantic"})
+
+
+def normalize_mode(mode: str | None) -> str:
+    name = str(mode or DEFAULT_MODE).strip().lower()
+    if name not in SUPPORTED_MODES:
+        raise SystemExit(f"Unsupported mode: {name}")
+    return name
+
+
+def _search_request_kwargs(data: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "query": str(data.get("query", "")),
+        "target": str(data.get("target", "both")),
+        "profile": str(data.get("profile", "fast")),
+        "mode": data.get("mode", DEFAULT_MODE),
+        "folder": data.get("folder"),
+        "endnote_library": data.get("endnote_library"),
+        "years": data.get("years"),
+        "limit": int(data.get("limit", 10)),
+        "explain": bool(data.get("explain", False)),
+        "auto_refresh": bool(data.get("auto_refresh", False)),
+        "refresh_now": bool(data.get("refresh_now", False)),
+    }
+
 
 @dataclass
 class SearchHit:
@@ -35,6 +61,7 @@ class SearchRequest:
     query: str
     target: str = "both"
     profile: str = "fast"
+    mode: str = DEFAULT_MODE
     folder: str | None = None
     endnote_library: str | None = None
     years: str | None = None
@@ -43,20 +70,15 @@ class SearchRequest:
     auto_refresh: bool = False
     refresh_now: bool = False
 
+    def __post_init__(self) -> None:
+        self.mode = normalize_mode(self.mode)
+
+    def to_payload(self) -> dict[str, Any]:
+        return asdict(self)
+
     @classmethod
     def from_mapping(cls, data: dict[str, Any]) -> "SearchRequest":
-        return cls(
-            query=str(data.get("query", "")),
-            target=str(data.get("target", "both")),
-            profile=str(data.get("profile", "fast")),
-            folder=data.get("folder"),
-            endnote_library=data.get("endnote_library"),
-            years=data.get("years"),
-            limit=int(data.get("limit", 10)),
-            explain=bool(data.get("explain", False)),
-            auto_refresh=bool(data.get("auto_refresh", False)),
-            refresh_now=bool(data.get("refresh_now", False)),
-        )
+        return cls(**_search_request_kwargs(data))
 
 
 @dataclass
@@ -65,19 +87,12 @@ class AskRequest(SearchRequest):
 
     @classmethod
     def from_mapping(cls, data: dict[str, Any]) -> "AskRequest":
-        base = SearchRequest.from_mapping(data)
+        kwargs = _search_request_kwargs(data)
+        question = str(data.get("question", data.get("query", "")))
+        kwargs["query"] = kwargs["query"] or question
         return cls(
-            query=base.query or str(data.get("question", "")),
-            question=str(data.get("question", data.get("query", ""))),
-            target=base.target,
-            profile=base.profile,
-            folder=base.folder,
-            endnote_library=base.endnote_library,
-            years=base.years,
-            limit=base.limit,
-            explain=base.explain,
-            auto_refresh=base.auto_refresh,
-            refresh_now=base.refresh_now,
+            question=question,
+            **kwargs,
         )
 
 
@@ -87,17 +102,8 @@ class ReportRequest(SearchRequest):
 
     @classmethod
     def from_mapping(cls, data: dict[str, Any]) -> "ReportRequest":
-        base = SearchRequest.from_mapping(data)
+        kwargs = _search_request_kwargs(data)
         return cls(
-            query=base.query,
-            target=base.target,
-            profile=base.profile,
-            folder=base.folder,
-            endnote_library=base.endnote_library,
-            years=base.years,
-            limit=base.limit,
-            explain=base.explain,
-            auto_refresh=base.auto_refresh,
-            refresh_now=base.refresh_now,
             read_top=int(data.get("read_top", 3)),
+            **kwargs,
         )
