@@ -45,6 +45,27 @@
     "profile_default": "fast",
     "top_k_recall": 40,
     "top_k_rerank": 20,
-    "top_k_evidence": 6
+    "top_k_evidence": 6,
+    "top_k_report": 10,
+    "route_weights": {
+      "obsidian_notes": 1.2,
+      "obsidian_chunks": 1.4,
+      "endnote_docs": 1.1,
+      "endnote_attachments": 0.95,
+      "endnote_fulltext": 1.0
+    },
+    "scoring": {
+      "title_hit_cap": 3,
+      "text_hit_cap": 12,
+      "title_hit_weight": 10.0,
+      "text_hit_weight": 2.0,
+      "title_contains_bonus": 8.0,
+      "expansion_bonus_weight": 0.15,
+      "char_ngram_n": 3,
+      "char_ngram_weight": 20.0,
+      "semantic_char_ngram_weight": 100.0,
+      "fts_bonus_base": 40.0,
+      "fts_bonus_scale": 4.0
+    }
   }
 }

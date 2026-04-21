@@ -19,6 +19,7 @@ def format_hit_text(hit: dict[str, Any], index: int, explain: bool = False) -> s
     if explain:
         lines.append(f"    routes={', '.join(hit.get('routes') or []) or hit['route']}")
         lines.append(f"    lexical_score={hit['lexical_score']:.6f}")
+        lines.append(f"    hybrid_score={hit['hybrid_score']:.6f}")
         lines.append(f"    canonical_key={hit['canonical_key']}")
     return "\n".join(lines)
 

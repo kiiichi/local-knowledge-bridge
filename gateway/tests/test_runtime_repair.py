@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import shutil
 import sys
-import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -13,12 +12,12 @@ if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
 from local_knowledge_bridge import bootstrap_runtime, service_client
+from support import scratch_dir
 
 
 class ServiceClientRuntimeTests(unittest.TestCase):
     def test_preferred_python_uses_embedded_runtime_root_when_usable(self) -> None:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            runtime_home = Path(temp_dir)
+        with scratch_dir("preferred_python_usable") as runtime_home:
             embedded_python = runtime_home / "python.exe"
             embedded_python.write_text("", encoding="utf-8")
 
@@ -29,8 +28,7 @@ class ServiceClientRuntimeTests(unittest.TestCase):
             self.assertEqual(result, str(embedded_python))
 
     def test_preferred_python_raises_on_broken_embedded_runtime(self) -> None:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            runtime_home = Path(temp_dir)
+        with scratch_dir("preferred_python_broken") as runtime_home:
             embedded_python = runtime_home / "Scripts" / "python.exe"
             embedded_python.parent.mkdir(parents=True, exist_ok=True)
             embedded_python.write_text("", encoding="utf-8")
@@ -39,12 +37,32 @@ class ServiceClientRuntimeTests(unittest.TestCase):
                 with self.assertRaises(SystemExit):
                     service_client._preferred_python({"runtime": {"python_home": str(runtime_home)}})
 
+    def test_start_service_redirects_stdout_and_stderr_to_service_log(self) -> None:
+        with scratch_dir("service_log_redirect") as temp_root:
+            service_script = temp_root / "lkb_service.py"
+            service_script.write_text("", encoding="utf-8")
+            log_path = temp_root / ".logs" / "service.log"
+
+            with (
+                patch("local_knowledge_bridge.service_client.service_health", return_value=None),
+                patch("local_knowledge_bridge.service_client._preferred_python", return_value="python.exe"),
+                patch("local_knowledge_bridge.service_client.gateway_script_path", return_value=service_script),
+                patch("local_knowledge_bridge.service_client.service_log_path", return_value=log_path),
+                patch("local_knowledge_bridge.service_client.subprocess.Popen") as popen,
+            ):
+                service_client.start_service({"service": {"host": "127.0.0.1", "port": 53744}})
+
+            self.assertTrue(log_path.exists())
+            kwargs = popen.call_args.kwargs
+            self.assertEqual(Path(kwargs["stdout"].name), log_path)
+            self.assertIs(kwargs["stdout"], kwargs["stderr"])
+            self.assertEqual(kwargs["cwd"], str(service_script.parent))
+
 
 class BootstrapRuntimeTests(unittest.TestCase):
     def test_copy_portable_runtime_clones_source_and_removes_pyvenv_cfg(self) -> None:
-        with tempfile.TemporaryDirectory() as source_dir, tempfile.TemporaryDirectory() as target_dir:
-            source_root = Path(source_dir)
-            target_root = Path(target_dir) / "py311"
+        with scratch_dir("runtime_source") as source_root, scratch_dir("runtime_target") as target_base:
+            target_root = target_base / "py311"
             (source_root / "python.exe").write_text("", encoding="utf-8")
             (source_root / "Lib").mkdir()
             (source_root / "Scripts").mkdir()

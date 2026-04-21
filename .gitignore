@@ -29,6 +29,7 @@ gateway/.cache/
 gateway/.index/
 gateway/.logs/
 gateway/.models/
+gateway/.tmp/
 gateway/runtime/
 gateway/__pycache__/
 gateway/src/**/__pycache__/

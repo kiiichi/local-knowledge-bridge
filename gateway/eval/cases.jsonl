@@ -2,3 +2,5 @@
 {"query":"homodyne tomography balanced detector","target":"both","must_have":["10.1016/j.optcom.2012.07.103"]}
 {"query":"quantum state tomography third-order OPO","target":"both","must_have":["10.1364/ol.521339"]}
 {"query":"single-mode squeezed-light generation tomography integrated optical parametric oscillator","target":"both","must_have":["10.1126/sciadv.adl1814"]}
+{"query":"wideband balanced detector homodyne","target":"both","must_have":["10.1016/j.optcom.2012.07.103"]}
+{"query":"equation argument registry","target":"obsidian","must_have":["shared/equation_argument_registry.md"]}

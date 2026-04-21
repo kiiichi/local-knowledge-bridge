@@ -51,7 +51,10 @@ Implemented now:
 - Obsidian indexing
 - EndNote metadata / attachment / PDF full-text indexing
 - lexical retrieval with weighted route fusion
+- lightweight hybrid route scoring for `fast` and `balanced`
 - real `mode` execution semantics across CLI, service, and retrieval payloads
+- config-backed route weights and lightweight scoring defaults
+- service stdout / stderr logging to `gateway/.logs/service.log`
 - self-contained embedded runtime bootstrap
 - service-first execution on `127.0.0.1:53744`
 
@@ -64,21 +67,17 @@ Current retrieval shape:
 
 - `SQLite FTS5` route-level lexical retrieval
 - `mode` is now a real request / response contract
+- route-local token-hit, expanded-token, char-ngram, and FTS-bonus scoring
+- search hits expose fused `score` plus `lexical_score` and `hybrid_score`
 - weighted reciprocal rank fusion
-- `fast` and `balanced` are usable but still lexical-ordered for now
+- `fast` and `balanced` now use lightweight hybrid route ordering without loading deep models
 - `deep` fails explicitly
 
 ## Locked Next Development Route
 
-Step 1 is complete. The next work on this repository is:
+Steps 1-3 are complete. The next work on this repository is:
 
-1. Restore the legacy `kb` lightweight hybrid scoring path.  
-   The current `lkb` retrieval stack is still lexical + RRF only. The next stage should recover the old token-hit, expanded-token, char-ngram, and FTS bonus logic in a new `src/local_knowledge_bridge/scoring.py`.
-
-2. Move route weights and scoring parameters into configuration.  
-   The next stage should make the retrieval weights and scoring constants observable and configurable through `constants.py` and `templates/lkb_config.template.json`.
-
-3. Implement `deep` with the same technical path as legacy `kb`.  
+1. Implement `deep` with the same technical path as legacy `kb`.  
    The target path is:
    - hybrid recall
    - semantic scoring with `BAAI/bge-m3`
@@ -86,8 +85,10 @@ Step 1 is complete. The next work on this repository is:
    - reranker with `BAAI/bge-reranker-v2-m3`
    - isolated `deep_worker.py`
 
-4. Keep the repository modular and cross-device deployable.  
-   The new retrieval and deep code should be added as modules under `src/local_knowledge_bridge/`, not as a new monolith.
+2. Keep the repository modular and cross-device deployable.  
+   The new retrieval and deep code should continue to land in separated modules, with machine-local runtime, model, and index state kept out of git.
+
+`lkb_*` remains the CLI prefix, and users can also refer to this skill as `lkb` in natural-language requests such as “use lkb to search” or “answer with lkb”.
 
 ## What Gets Deployed
 
@@ -236,6 +237,14 @@ Current service contract:
 - `POST /report`
 - `POST /shutdown`
 
+Current service behavior and diagnostics:
+
+- `lkb_search`, `lkb_ask`, and `lkb_report` default to the service path and auto-start the service if needed
+- `--no-service` bypasses the HTTP transport and runs retrieval in-process
+- service stdout / stderr now append to `gateway/.logs/service.log`
+- `idle_shutdown_seconds` exists in config but is not consumed yet, so the service is not auto-shutdown per request
+- if the service path throws `ConnectionResetError`, inspect `gateway/.logs/service.log` before changing retrieval code
+
 ## Cross-Device Development And Deployment
 
 Use this repository as the only source of code on every machine.
@@ -274,14 +283,16 @@ The current workspace has already verified:
 - `lkb_doctor --json` snapshot:
   - `obsidian_stale = true`
   - `endnote_stale = true`
-  - `obsidian_changed_notes = 3`
+  - `obsidian_changed_notes = 4`
   - `endnote_changed_pdfs = 0`
   - `service.running = false`
 - `lkb_eval` snapshot:
-  - `balanced`: `Recall@5 = 1.0`, `Recall@10 = 1.0`, `MRR@10 = 1.0`, `nDCG@10 = 1.0`, `AvgLatencyMs ~= 139.0`
-  - `baseline`: `Recall@5 = 1.0`, `Recall@10 = 1.0`, `MRR@10 = 1.0`, `nDCG@10 = 1.0`, `AvgLatencyMs ~= 137.0`
+  - eval set size: `6` cases
+  - case mix: `4` tomography cases + `1` EndNote paraphrase case + `1` Obsidian-biased case
+  - `balanced`: `Recall@5 = 1.0`, `Recall@10 = 1.0`, `MRR@10 = 0.9167`, `nDCG@10 = 0.9385`, `AvgLatencyMs ~= 237.2`
+  - `baseline`: `Recall@5 = 1.0`, `Recall@10 = 1.0`, `MRR@10 = 0.9167`, `nDCG@10 = 0.9385`, `AvgLatencyMs ~= 222.9`
 
-The current bundled `gateway/eval/cases.jsonl` is a tomography-focused smoke regression set. It should be extended further with paraphrase EndNote cases and Obsidian-biased cases as the repo evolves.
+The current bundled `gateway/eval/cases.jsonl` is still a smoke regression set, but it is no longer tomography-only. It now includes paraphrase EndNote and Obsidian-biased cases and should keep expanding as the corpus evolves.
 
 ## Related Docs
 

@@ -9,7 +9,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-from .paths import gateway_script_path, runtime_python, runtime_root
+from .paths import gateway_script_path, runtime_python, runtime_root, service_log_path
 
 
 def _base_url(config: dict) -> str:
@@ -83,13 +83,16 @@ def start_service(config: dict) -> None:
         creationflags |= int(subprocess.DETACHED_PROCESS)
     if hasattr(subprocess, "CREATE_NEW_PROCESS_GROUP"):
         creationflags |= int(subprocess.CREATE_NEW_PROCESS_GROUP)
-    subprocess.Popen(
-        command,
-        cwd=str(gateway_script_path("lkb_service.py").parent),
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        creationflags=creationflags,
-    )
+    log_path = service_log_path()
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    with log_path.open("ab") as log_file:
+        subprocess.Popen(
+            command,
+            cwd=str(gateway_script_path("lkb_service.py").parent),
+            stdout=log_file,
+            stderr=log_file,
+            creationflags=creationflags,
+        )
 
 
 def ensure_service(config: dict) -> dict[str, Any]:

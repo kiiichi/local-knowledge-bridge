@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .constants import PROFILE_SETTINGS, SERVICE_HOST, SERVICE_PORT
+from .constants import DEFAULT_ROUTE_WEIGHTS, DEFAULT_SCORING, PROFILE_SETTINGS, SERVICE_HOST, SERVICE_PORT
 from .paths import config_path, config_template_path, default_index_db_path, gateway_root, runtime_root
 
 
@@ -147,6 +147,34 @@ def profile_settings(config: dict[str, Any], profile: str | None) -> dict[str, A
         retrieval = config.get("retrieval", {})
         settings["top_k_recall"] = int(retrieval.get("top_k_recall", settings["top_k_recall"]))
         settings["top_k_evidence"] = int(retrieval.get("top_k_evidence", settings["top_k_evidence"]))
+        settings["top_k_report"] = int(retrieval.get("top_k_report", settings["top_k_report"]))
+    return settings
+
+
+def route_weights(config: dict[str, Any]) -> dict[str, float]:
+    retrieval = config.get("retrieval", {})
+    raw = retrieval.get("route_weights", {})
+    weights = dict(DEFAULT_ROUTE_WEIGHTS)
+    if isinstance(raw, dict):
+        for key, value in raw.items():
+            if key in weights:
+                weights[key] = float(value)
+    return weights
+
+
+def scoring_settings(config: dict[str, Any]) -> dict[str, float | int]:
+    retrieval = config.get("retrieval", {})
+    raw = retrieval.get("scoring", {})
+    settings: dict[str, float | int] = dict(DEFAULT_SCORING)
+    if isinstance(raw, dict):
+        for key, value in raw.items():
+            if key in settings:
+                settings[key] = value
+
+    for key in {"title_hit_cap", "text_hit_cap", "char_ngram_n"}:
+        settings[key] = max(1, int(settings[key]))
+    for key in set(settings) - {"title_hit_cap", "text_hit_cap", "char_ngram_n"}:
+        settings[key] = float(settings[key])
     return settings
 
 

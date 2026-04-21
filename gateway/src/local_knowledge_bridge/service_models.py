@@ -44,6 +44,7 @@ class SearchHit:
     full_path: str
     score: float = 0.0
     lexical_score: float = 0.0
+    hybrid_score: float = 0.0
     library_id: str = ""
     library_name: str = ""
     routes: list[str] = field(default_factory=list)
@@ -53,6 +54,7 @@ class SearchHit:
         payload = asdict(self)
         payload["score"] = round(float(self.score), 6)
         payload["lexical_score"] = round(float(self.lexical_score), 6)
+        payload["hybrid_score"] = round(float(self.hybrid_score), 6)
         return payload
 
 

@@ -5,13 +5,14 @@ import sqlite3
 import time
 from pathlib import Path
 
-from .config import enabled_endnote_libraries, profile_settings, selected_profile
+from .config import enabled_endnote_libraries, profile_settings, route_weights, scoring_settings, selected_profile
 from .constants import SUPPORTED_TARGETS
 from .db import connect_index, get_meta, set_meta, table_exists
 from .endnote import index_endnote
-from .normalize import build_fts_query, make_snippet, parse_year_filters, year_matches_filter
+from .normalize import make_snippet, parse_year_filters, year_matches_filter
 from .obsidian import index_obsidian
 from .ranking import fuse_hits
+from .scoring import QueryContext, build_query_context, score_document
 from .schema import clear_index, ensure_schema
 from .service_models import SearchHit, SearchRequest, normalize_mode
 from .source_guard import ensure_gateway_output_path
@@ -111,23 +112,47 @@ def ensure_index_ready(config: dict, refresh_now: bool = False, auto_refresh: bo
         build_index(config, force=refresh_now)
 
 
-def _build_hit(row: sqlite3.Row, route: str, source: str, query: str) -> SearchHit:
-    lexical_score = -float(row["bm25_score"])
+def _score_row(
+    row: sqlite3.Row,
+    *,
+    route: str,
+    source: str,
+    query_context: QueryContext,
+    mode: str,
+    scoring: dict[str, float | int],
+) -> SearchHit:
+    bm25_score = float(row["bm25_score"])
+    title = str(row["title"] or "")
+    content_text = str(row["content_text"] or "")
+    scores = score_document(
+        mode=mode,
+        title=title,
+        body=content_text,
+        bm25_score=bm25_score,
+        query_context=query_context,
+        scoring=scoring,
+    )
     return SearchHit(
         source=source,
         route=route,
-        title=str(row["title"] or ""),
+        title=title,
         path=str(row["path"] or ""),
         locator=str(row["locator"] or ""),
-        snippet=make_snippet(str(row["content_text"] or ""), query),
+        snippet=make_snippet(content_text, query_context.query),
         year=str(row["year"] or ""),
         doi=str(row["doi"] or ""),
         canonical_key=str(row["canonical_key"] or ""),
         full_path=str(row["full_path"] or ""),
-        lexical_score=lexical_score,
+        score=scores["active_score"],
+        lexical_score=scores["lexical_score"],
+        hybrid_score=scores["hybrid_score"],
         library_id=str(row["library_id"] or ""),
         library_name=str(row["library_name"] or ""),
-        extra={"hit_key": str(row["hit_key"] or "")},
+        extra={
+            "hit_key": str(row["hit_key"] or ""),
+            "bm25_score": bm25_score,
+            "semantic_score": scores["semantic_score"],
+        },
     )
 
 
@@ -158,19 +183,30 @@ def _query_route(
     *,
     sql: str,
     fts_query: str,
-    raw_query: str,
+    query_context: QueryContext,
     candidate_limit: int,
     mode: str,
+    scoring: dict[str, float | int],
     route: str,
     source: str,
     folder: str | None,
     years: list[tuple[int, int]],
     endnote_library: str | None,
 ) -> list[SearchHit]:
-    _ = mode
     rows = connection.execute(sql, (fts_query, candidate_limit)).fetchall()
-    hits = [_build_hit(row, route, source, raw_query) for row in rows]
+    hits = [
+        _score_row(
+            row,
+            route=route,
+            source=source,
+            query_context=query_context,
+            mode=mode,
+            scoring=scoring,
+        )
+        for row in rows
+    ]
     hits = _apply_common_filters(hits, folder=folder, years=years, endnote_library=endnote_library)
+    hits.sort(key=lambda item: (item.score, item.hybrid_score, item.lexical_score, item.title.lower()), reverse=True)
     return hits
 
 
@@ -190,8 +226,10 @@ def search_local(config: dict, request: SearchRequest) -> dict:
     try:
         ensure_schema(connection)
         settings = profile_settings(config, profile)
+        route_weight_config = route_weights(config)
+        scoring_config = scoring_settings(config)
         candidate_limit = max(int(settings["top_k_recall"]), max(request.limit, 1) * 6)
-        fts_query = build_fts_query(request.query)
+        query_context = build_query_context(request.query, scoring=scoring_config)
         year_filters = parse_year_filters(request.years)
 
         route_hits: dict[str, list[SearchHit]] = {}
@@ -218,10 +256,11 @@ def search_local(config: dict, request: SearchRequest) -> dict:
                     ORDER BY bm25(obsidian_note_fts)
                     LIMIT ?
                 """,
-                fts_query=fts_query,
-                raw_query=request.query,
+                fts_query=query_context.fts_query,
+                query_context=query_context,
                 candidate_limit=candidate_limit,
                 mode=effective_mode,
+                scoring=scoring_config,
                 route="obsidian_notes",
                 source="obsidian",
                 folder=request.folder,
@@ -250,10 +289,11 @@ def search_local(config: dict, request: SearchRequest) -> dict:
                     ORDER BY bm25(obsidian_chunk_fts)
                     LIMIT ?
                 """,
-                fts_query=fts_query,
-                raw_query=request.query,
+                fts_query=query_context.fts_query,
+                query_context=query_context,
                 candidate_limit=candidate_limit,
                 mode=effective_mode,
+                scoring=scoring_config,
                 route="obsidian_chunks",
                 source="obsidian",
                 folder=request.folder,
@@ -284,10 +324,11 @@ def search_local(config: dict, request: SearchRequest) -> dict:
                     ORDER BY bm25(endnote_doc_fts)
                     LIMIT ?
                 """,
-                fts_query=fts_query,
-                raw_query=request.query,
+                fts_query=query_context.fts_query,
+                query_context=query_context,
                 candidate_limit=candidate_limit,
                 mode=effective_mode,
+                scoring=scoring_config,
                 route="endnote_docs",
                 source="endnote",
                 folder=request.folder,
@@ -317,10 +358,11 @@ def search_local(config: dict, request: SearchRequest) -> dict:
                     ORDER BY bm25(endnote_attachment_fts)
                     LIMIT ?
                 """,
-                fts_query=fts_query,
-                raw_query=request.query,
+                fts_query=query_context.fts_query,
+                query_context=query_context,
                 candidate_limit=candidate_limit,
                 mode=effective_mode,
+                scoring=scoring_config,
                 route="endnote_attachments",
                 source="endnote",
                 folder=request.folder,
@@ -350,10 +392,11 @@ def search_local(config: dict, request: SearchRequest) -> dict:
                     ORDER BY bm25(endnote_fulltext_fts)
                     LIMIT ?
                 """,
-                fts_query=fts_query,
-                raw_query=request.query,
+                fts_query=query_context.fts_query,
+                query_context=query_context,
                 candidate_limit=candidate_limit,
                 mode=effective_mode,
+                scoring=scoring_config,
                 route="endnote_fulltext",
                 source="endnote",
                 folder=request.folder,
@@ -361,7 +404,7 @@ def search_local(config: dict, request: SearchRequest) -> dict:
                 endnote_library=request.endnote_library,
             )
 
-        all_hits = fuse_hits(route_hits)
+        all_hits = fuse_hits(route_hits, route_weights=route_weight_config)
         fused_hits = all_hits[: max(request.limit, 1)]
         return {
             "query": request.query,
@@ -377,6 +420,7 @@ def search_local(config: dict, request: SearchRequest) -> dict:
                 "folder": request.folder,
                 "years": request.years,
                 "endnote_library": request.endnote_library,
+                "route_weights": route_weight_config,
             },
         }
     finally:

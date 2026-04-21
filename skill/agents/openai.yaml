@@ -1,4 +1,4 @@
 interface:
   display_name: "Local Knowledge Bridge"
-  short_description: "Answer from your local Obsidian and EndNote knowledge sources."
-  default_prompt: "Use $local-knowledge-bridge to answer this by checking my local knowledge base first."
+  short_description: "Answer from your local Obsidian and EndNote knowledge sources. `lkb` is the short alias."
+  default_prompt: "Use $local-knowledge-bridge to answer this by checking my local knowledge base first. If the user says to use lkb, treat that as the same skill."
