@@ -91,6 +91,8 @@ class RetrievalModeContractTests(unittest.TestCase):
                     "score": 0.5,
                     "lexical_score": 33.0,
                     "hybrid_score": 44.0,
+                    "semantic_score": 0.77,
+                    "rerank_score": 0.22,
                     "library_id": "",
                     "library_name": "",
                     "routes": ["obsidian_notes"],
@@ -106,6 +108,55 @@ class RetrievalModeContractTests(unittest.TestCase):
         self.assertIn("MODE: semantic", result["report_markdown"])
         self.assertIn("EFFECTIVE_MODE: lexical", result["report_markdown"])
         self.assertIn("hybrid_score=44.000000", result["report_markdown"])
+        self.assertIn("semantic_score=0.770000", result["report_markdown"])
+        self.assertIn("rerank_score=0.220000", result["report_markdown"])
+
+    def test_search_local_routes_deep_profile_into_deep_ranking(self) -> None:
+        request = SearchRequest(query="passive linear optics", target="obsidian", profile="deep", mode="hybrid", limit=3)
+        hit = SearchHit(
+            source="obsidian",
+            route="obsidian_notes",
+            title="Passive Linear Optics",
+            path="notes/passive-linear-optics.md",
+            locator="",
+            snippet="passive linear optics",
+            year="2024",
+            doi="10.1000/example",
+            canonical_key="doi:10.1000/example",
+            full_path="C:\\notes\\passive-linear-optics.md",
+            hybrid_score=55.0,
+            semantic_text="body",
+        )
+
+        with (
+            patch.object(retrieval, "selected_profile", return_value="deep"),
+            patch.object(retrieval, "ensure_index_ready"),
+            patch.object(retrieval, "connect_index", return_value=DummyConnection()),
+            patch.object(retrieval, "ensure_schema"),
+            patch.object(retrieval, "profile_settings", return_value={"top_k_recall": 12}),
+            patch.object(retrieval, "route_weights", return_value={"obsidian_notes": 1.2}),
+            patch.object(retrieval, "scoring_settings", return_value={"char_ngram_n": 3}),
+            patch.object(
+                retrieval,
+                "build_query_context",
+                return_value=QueryContext(
+                    query=request.query,
+                    base_tokens=["passive", "linear", "optics"],
+                    expanded_tokens=["passive", "linear", "optics"],
+                    query_ngrams={},
+                    fts_query='"passive linear optics"',
+                ),
+            ),
+            patch.object(retrieval, "parse_year_filters", return_value=[]),
+            patch.object(retrieval, "_index_db_path", return_value=Path("C:/gateway/.tmp/tests/index/lkb_index.sqlite")),
+            patch.object(retrieval, "_query_route", side_effect=[[hit], []]),
+            patch.object(retrieval, "fuse_hits", return_value=[hit]),
+            patch.object(retrieval, "apply_deep_ranking", return_value=[hit]) as apply_deep_ranking,
+        ):
+            payload = retrieval.search_local({}, request)
+
+        self.assertEqual(payload["profile"], "deep")
+        apply_deep_ranking.assert_called_once_with(request.query, [hit], {}, top_k_rerank=20)
 
 
 class EvalModeTests(unittest.TestCase):

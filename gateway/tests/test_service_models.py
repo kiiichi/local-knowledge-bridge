@@ -9,7 +9,7 @@ SRC_ROOT = GATEWAY_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from local_knowledge_bridge.service_models import AskRequest, ReportRequest, SearchRequest
+from local_knowledge_bridge.service_models import AskRequest, ReportRequest, SearchHit, SearchRequest
 
 
 class RequestModelTests(unittest.TestCase):
@@ -36,6 +36,31 @@ class RequestModelTests(unittest.TestCase):
         self.assertEqual(request.query, "passive linear optics")
         self.assertEqual(request.mode, "lexical")
         self.assertEqual(request.read_top, 5)
+
+    def test_search_hit_to_dict_exposes_stable_deep_scores_without_internal_text(self) -> None:
+        hit = SearchHit(
+            source="obsidian",
+            route="obsidian_notes",
+            title="Passive Linear Optics",
+            path="notes/passive-linear-optics.md",
+            locator="",
+            snippet="passive linear optics",
+            year="2024",
+            doi="10.1000/example",
+            canonical_key="doi:10.1000/example",
+            full_path="C:\\notes\\passive-linear-optics.md",
+            semantic_score=0.77,
+            rerank_score=0.33,
+            semantic_text="hidden body",
+            extra={"bm25_score": 1.2},
+        )
+
+        payload = hit.to_dict()
+
+        self.assertEqual(payload["semantic_score"], 0.77)
+        self.assertEqual(payload["rerank_score"], 0.33)
+        self.assertNotIn("semantic_text", payload)
+        self.assertEqual(payload["extra"]["bm25_score"], 1.2)
 
 
 if __name__ == "__main__":

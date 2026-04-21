@@ -1,19 +1,26 @@
 from __future__ import annotations
 
 import argparse
+import json
+import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 from .config import load_config, save_config
-from .paths import requirements_deep, requirements_runtime, runtime_python, runtime_root
+from .paths import gateway_root, requirements_deep, requirements_runtime, runtime_python, runtime_root
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Bootstrap Local Knowledge Bridge runtime.")
     parser.add_argument("--include-deep", action="store_true", help="Install deep-mode dependencies.")
     parser.add_argument("--force-recreate", action="store_true", help="Recreate the runtime virtual environment.")
+    parser.add_argument(
+        "--prefetch-models",
+        action="store_true",
+        help="Download deep models into gateway/.models using the embedded runtime.",
+    )
     return parser.parse_args()
 
 
@@ -108,11 +115,44 @@ def _update_config() -> None:
     save_config(config)
 
 
+def _prefetch_models() -> None:
+    python = str(runtime_python())
+    src_root = gateway_root() / "src"
+    command = [
+        python,
+        "-c",
+        (
+            "import sys; "
+            f"sys.path.insert(0, {json.dumps(str(src_root))}); "
+            "from local_knowledge_bridge.config import load_config; "
+            "from local_knowledge_bridge.deep_models import prefetch_models; "
+            "import json; "
+            "print(json.dumps(prefetch_models(load_config()), ensure_ascii=False))"
+        ),
+    ]
+    completed = subprocess.run(
+        command,
+        check=False,
+        cwd=str(gateway_root()),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    if completed.returncode != 0:
+        message = completed.stderr.strip() or completed.stdout.strip() or "Deep model prefetch failed."
+        raise SystemExit(message)
+    if completed.stdout.strip():
+        print(completed.stdout.strip())
+
+
 def main() -> int:
     args = parse_args()
+    include_deep = bool(args.include_deep or args.prefetch_models)
     _create_runtime(args.force_recreate)
-    _install_requirements(args.include_deep)
+    _install_requirements(include_deep)
     _update_config()
+    if args.prefetch_models:
+        _prefetch_models()
     print("Local Knowledge Bridge runtime is ready.")
     print(f"  runtime: {runtime_root()}")
     print(f"  python : {runtime_python()}")

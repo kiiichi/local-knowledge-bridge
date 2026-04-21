@@ -4,6 +4,7 @@ param(
   [string]$CodexHome = $(if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $HOME '.codex' }),
   [switch]$BootstrapRuntime,
   [switch]$IncludeDeepDeps,
+  [switch]$PrefetchModels,
   [switch]$Force
 )
 
@@ -93,12 +94,15 @@ if ((Test-Path -LiteralPath $configTemplate) -and -not (Test-Path -LiteralPath $
   Copy-Item -LiteralPath $configTemplate -Destination $configTarget
 }
 
-if ($BootstrapRuntime) {
+if ($BootstrapRuntime -or $PrefetchModels) {
   $pythonCmd = Resolve-PythonCommand
   $bootstrapScript = Join-Path $gatewayTarget 'lkb_bootstrap_runtime.py'
   $bootstrapArgs = @($bootstrapScript)
   if ($IncludeDeepDeps) {
     $bootstrapArgs += '--include-deep'
+  }
+  if ($PrefetchModels) {
+    $bootstrapArgs += '--prefetch-models'
   }
   if ($pythonCmd.Count -eq 2) {
     & $pythonCmd[0] $pythonCmd[1] @bootstrapArgs

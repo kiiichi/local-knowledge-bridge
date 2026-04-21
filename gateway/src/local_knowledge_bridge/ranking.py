@@ -31,6 +31,8 @@ def fuse_hits(
             merged_hit.score += contribution
             merged_hit.lexical_score = max(merged_hit.lexical_score, hit.lexical_score)
             merged_hit.hybrid_score = max(merged_hit.hybrid_score, hit.hybrid_score)
+            merged_hit.semantic_score = max(merged_hit.semantic_score, hit.semantic_score)
+            merged_hit.rerank_score = max(merged_hit.rerank_score, hit.rerank_score)
             if route not in merged_hit.routes:
                 merged_hit.routes.append(route)
 
@@ -46,10 +48,18 @@ def fuse_hits(
                 merged_hit.full_path = hit.full_path
                 merged_hit.library_id = hit.library_id
                 merged_hit.library_name = hit.library_name
+                merged_hit.semantic_text = hit.semantic_text
                 merged_hit.extra = dict(hit.extra)
 
     return sorted(
         merged.values(),
-        key=lambda item: (item.score, item.hybrid_score, item.lexical_score, item.title.lower()),
+        key=lambda item: (
+            item.score,
+            item.rerank_score,
+            item.semantic_score,
+            item.hybrid_score,
+            item.lexical_score,
+            item.title.lower(),
+        ),
         reverse=True,
     )

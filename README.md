@@ -52,15 +52,17 @@ Implemented now:
 - EndNote metadata / attachment / PDF full-text indexing
 - lexical retrieval with weighted route fusion
 - lightweight hybrid route scoring for `fast` and `balanced`
+- `deep` semantic retrieval with explicit machine-local model prefetch under `gateway/.models/`
 - real `mode` execution semantics across CLI, service, and retrieval payloads
 - config-backed route weights and lightweight scoring defaults
+- `deep_worker.py` service dispatch for `profile=deep`
+- `lkb_doctor` `deep_status` diagnostics
 - service stdout / stderr logging to `gateway/.logs/service.log`
 - self-contained embedded runtime bootstrap
 - service-first execution on `127.0.0.1:53744`
 
 Not implemented yet:
 
-- `deep`
 - remote release lookup beyond local version files
 
 Current retrieval shape:
@@ -68,25 +70,25 @@ Current retrieval shape:
 - `SQLite FTS5` route-level lexical retrieval
 - `mode` is now a real request / response contract
 - route-local token-hit, expanded-token, char-ngram, and FTS-bonus scoring
-- search hits expose fused `score` plus `lexical_score` and `hybrid_score`
+- search hits expose fused `score` plus `lexical_score`, `hybrid_score`, `semantic_score`, and `rerank_score`
 - weighted reciprocal rank fusion
 - `fast` and `balanced` now use lightweight hybrid route ordering without loading deep models
-- `deep` fails explicitly
+- `deep` adds `BAAI/bge-m3` semantic scoring, semantic route fusion, and `BAAI/bge-reranker-v2-m3` reranking
+- `deep` requires explicit local model prefetch into `gateway/.models/` and does not download models lazily during a query
 
-## Locked Next Development Route
+## Current Deep Deployment Route
 
-Steps 1-3 are complete. The next work on this repository is:
+Steps 1-7 of the locked retrieval route are complete. The current operating rules for `deep` are:
 
-1. Implement `deep` with the same technical path as legacy `kb`.  
-   The target path is:
-   - hybrid recall
-   - semantic scoring with `BAAI/bge-m3`
-   - semantic route fusion
-   - reranker with `BAAI/bge-reranker-v2-m3`
-   - isolated `deep_worker.py`
+1. Keep `deep` machine-local and reproducible.  
+   The active deployment path is:
+   - install or update the gateway
+   - run `lkb_bootstrap_runtime --include-deep --prefetch-models`
+   - cache models only under `gateway/.models/`
+   - keep `.models/` out of git and do not copy it across machines by default
 
 2. Keep the repository modular and cross-device deployable.  
-   The new retrieval and deep code should continue to land in separated modules, with machine-local runtime, model, and index state kept out of git.
+   Retrieval orchestration stays in `retrieval.py`, lightweight ranking stays in `scoring.py` / `ranking.py`, deep model loading stays in `deep_models.py`, deep ranking stays in `deep_ranking.py`, and service isolation stays in `deep_worker.py`.
 
 `lkb_*` remains the CLI prefix, and users can also refer to this skill as `lkb` in natural-language requests such as “use lkb to search” or “answer with lkb”.
 
@@ -172,6 +174,13 @@ cd <repo>\local-knowledge-bridge
 
 `-Mode Link` is the recommended option for active development because edits in the repo are reflected immediately in the deployed Codex directories.
 
+Install and immediately prepare the deep runtime plus machine-local models:
+
+```powershell
+cd <repo>\local-knowledge-bridge
+.\scripts\install_windows.ps1 -Mode Link -BootstrapRuntime -PrefetchModels
+```
+
 ## Bootstrap And Configure
 
 Create the local runtime:
@@ -190,6 +199,12 @@ Include deep dependencies in the runtime:
 
 ```powershell
 C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_bootstrap_runtime.cmd --include-deep
+```
+
+Recreate the runtime and prefetch the deep models into `gateway/.models/`:
+
+```powershell
+C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_bootstrap_runtime.cmd --force-recreate --prefetch-models
 ```
 
 Configure data sources:
@@ -219,6 +234,12 @@ Search:
 
 ```powershell
 C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_search.cmd both "passive linear optics" --profile balanced --limit 10
+```
+
+Deep search after prefetch:
+
+```powershell
+C:\Users\<you>\.codex\Function\local_knowledge_bridge\lkb_search.cmd both "passive linear optics" --profile deep --limit 10 --no-service
 ```
 
 Report:
@@ -254,10 +275,10 @@ Each machine should:
 1. clone the repository
 2. install with `Copy` or `Link`
 3. run `lkb_bootstrap_runtime`
-4. install deep dependencies locally if needed
+4. run `lkb_bootstrap_runtime --include-deep --prefetch-models` if `deep` is needed
 5. configure local Obsidian / EndNote paths
 6. build the index locally
-7. download deep models locally when deep is implemented
+7. validate `lkb_doctor --json` and confirm `deep_status.ready = true` before relying on `profile=deep`
 
 Do not copy these between machines:
 

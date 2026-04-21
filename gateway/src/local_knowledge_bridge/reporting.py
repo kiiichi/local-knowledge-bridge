@@ -20,6 +20,8 @@ def format_hit_text(hit: dict[str, Any], index: int, explain: bool = False) -> s
         lines.append(f"    routes={', '.join(hit.get('routes') or []) or hit['route']}")
         lines.append(f"    lexical_score={hit['lexical_score']:.6f}")
         lines.append(f"    hybrid_score={hit['hybrid_score']:.6f}")
+        lines.append(f"    semantic_score={hit.get('semantic_score', 0.0):.6f}")
+        lines.append(f"    rerank_score={hit.get('rerank_score', 0.0):.6f}")
         lines.append(f"    canonical_key={hit['canonical_key']}")
     return "\n".join(lines)
 

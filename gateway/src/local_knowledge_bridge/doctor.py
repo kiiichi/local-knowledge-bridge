@@ -4,6 +4,7 @@ import time
 from pathlib import Path
 
 from .config import enabled_endnote_libraries, load_config
+from .deep_models import inspect_deep_status
 from .paths import version_path
 from .retrieval import index_status
 from .source_guard import endnote_data_dir, resolve_endnote_components, validate_obsidian_vault
@@ -248,6 +249,7 @@ def diagnose_gateway(config: dict | None = None, *, force_refresh: bool = False)
         "source_status": source_status,
         "authorization_status": {"endnote": auth_status},
         "index_status": index_info,
+        "deep_status": inspect_deep_status(config),
     }
 
 
@@ -307,6 +309,21 @@ def render_doctor(report: dict, service_health: dict | None = None) -> str:
         lines.append(f"- db_path: {index_info.get('db_path')}")
     for table_name, count in (index_info.get("counts") or {}).items():
         lines.append(f"- {table_name}: {count}")
+    lines.append("")
+
+    lines.append("DEEP:")
+    deep_status = report.get("deep_status") or {}
+    for key in ("deps_installed", "models_cached", "resolved_device", "ready"):
+        if key in deep_status:
+            lines.append(f"- {key}: {deep_status.get(key)}")
+    if deep_status.get("embedding_model"):
+        lines.append(f"- embedding_model: {deep_status.get('embedding_model')}")
+    if deep_status.get("reranker_model"):
+        lines.append(f"- reranker_model: {deep_status.get('reranker_model')}")
+    if deep_status.get("models_root"):
+        lines.append(f"- models_root: {deep_status.get('models_root')}")
+    if deep_status.get("detail"):
+        lines.append(f"- detail: {deep_status.get('detail')}")
     lines.append("")
 
     lines.append("SERVICE:")

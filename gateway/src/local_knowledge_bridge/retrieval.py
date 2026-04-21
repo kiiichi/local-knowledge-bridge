@@ -8,6 +8,7 @@ from pathlib import Path
 from .config import enabled_endnote_libraries, profile_settings, route_weights, scoring_settings, selected_profile
 from .constants import SUPPORTED_TARGETS
 from .db import connect_index, get_meta, set_meta, table_exists
+from .deep_ranking import apply_deep_ranking
 from .endnote import index_endnote
 from .normalize import make_snippet, parse_year_filters, year_matches_filter
 from .obsidian import index_obsidian
@@ -146,12 +147,13 @@ def _score_row(
         score=scores["active_score"],
         lexical_score=scores["lexical_score"],
         hybrid_score=scores["hybrid_score"],
+        semantic_score=scores["semantic_score"],
         library_id=str(row["library_id"] or ""),
         library_name=str(row["library_name"] or ""),
+        semantic_text=content_text,
         extra={
             "hit_key": str(row["hit_key"] or ""),
             "bm25_score": bm25_score,
-            "semantic_score": scores["semantic_score"],
         },
     )
 
@@ -212,8 +214,6 @@ def _query_route(
 
 def search_local(config: dict, request: SearchRequest) -> dict:
     profile = selected_profile(config, request.profile)
-    if profile == "deep":
-        raise SystemExit("The deep profile is not implemented in Local Knowledge Bridge V1. Use fast or balanced.")
     requested_mode = normalize_mode(getattr(request, "mode", None))
     effective_mode = requested_mode
 
@@ -229,6 +229,7 @@ def search_local(config: dict, request: SearchRequest) -> dict:
         route_weight_config = route_weights(config)
         scoring_config = scoring_settings(config)
         candidate_limit = max(int(settings["top_k_recall"]), max(request.limit, 1) * 6)
+        rerank_top_k = max(1, int(config.get("retrieval", {}).get("top_k_rerank", 20)))
         query_context = build_query_context(request.query, scoring=scoring_config)
         year_filters = parse_year_filters(request.years)
 
@@ -405,6 +406,13 @@ def search_local(config: dict, request: SearchRequest) -> dict:
             )
 
         all_hits = fuse_hits(route_hits, route_weights=route_weight_config)
+        if profile == "deep":
+            all_hits = apply_deep_ranking(
+                request.query,
+                all_hits,
+                config,
+                top_k_rerank=rerank_top_k,
+            )
         fused_hits = all_hits[: max(request.limit, 1)]
         return {
             "query": request.query,
@@ -421,6 +429,7 @@ def search_local(config: dict, request: SearchRequest) -> dict:
                 "years": request.years,
                 "endnote_library": request.endnote_library,
                 "route_weights": route_weight_config,
+                "top_k_rerank": rerank_top_k,
             },
         }
     finally:

@@ -45,17 +45,36 @@ class SearchHit:
     score: float = 0.0
     lexical_score: float = 0.0
     hybrid_score: float = 0.0
+    semantic_score: float = 0.0
+    rerank_score: float = 0.0
     library_id: str = ""
     library_name: str = ""
     routes: list[str] = field(default_factory=list)
+    semantic_text: str = field(default="", repr=False)
     extra: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        payload = asdict(self)
-        payload["score"] = round(float(self.score), 6)
-        payload["lexical_score"] = round(float(self.lexical_score), 6)
-        payload["hybrid_score"] = round(float(self.hybrid_score), 6)
-        return payload
+        return {
+            "source": self.source,
+            "route": self.route,
+            "title": self.title,
+            "path": self.path,
+            "locator": self.locator,
+            "snippet": self.snippet,
+            "year": self.year,
+            "doi": self.doi,
+            "canonical_key": self.canonical_key,
+            "full_path": self.full_path,
+            "score": round(float(self.score), 6),
+            "lexical_score": round(float(self.lexical_score), 6),
+            "hybrid_score": round(float(self.hybrid_score), 6),
+            "semantic_score": round(float(self.semantic_score), 6),
+            "rerank_score": round(float(self.rerank_score), 6),
+            "library_id": self.library_id,
+            "library_name": self.library_name,
+            "routes": list(self.routes),
+            "extra": dict(self.extra),
+        }
 
 
 @dataclass

@@ -25,12 +25,18 @@ The current retrieval stack is:
 - route-local lightweight hybrid scoring for `fast` and `balanced`
 - real `mode` request / service / retrieval semantics
 - weighted reciprocal rank fusion across routes
+- `deep` semantic scoring with `BAAI/bge-m3`
+- semantic route fusion over the global candidate set
+- reranking with `BAAI/bge-reranker-v2-m3`
+- isolated `deep_worker.py` service execution for `profile=deep`
 
 Current V1 notes:
 
 - `lkb_doctor` mirrors the legacy `kb_doctor` sections for `VERSION`, `SOURCES`, `AUTHORIZATION`, and `INDEX`
 - `lkb_eval` mirrors the legacy `kb_eval` shape for `profile`, `cases`, `metrics`, and `per_case`
 - version lookup is currently local-only and reads the gateway `VERSION` files
+- `lkb_bootstrap_runtime --prefetch-models` is the formal deep deployment entry and caches models under `.models/`
+- `lkb_doctor --json` now reports `deep_status` for dependency, cache, and device readiness
 - service stdout / stderr append to `.logs/service.log`
 - `gateway/eval/cases.jsonl` is a smoke regression set grounded in the active local corpus and should be curated further as the corpus evolves
 - the current bundled cases cover non-Gaussian-state tomography, homodyne tomography, third-order OPO state tomography, single-mode squeezed-light tomography, one EndNote paraphrase case, and one Obsidian-biased case
@@ -44,3 +50,5 @@ The gateway does not depend on any legacy `kb` files when deployed on a new mach
 - `lkb_bootstrap_runtime` uses the machine's available Python to build an embedded runtime inside `gateway/runtime/py311`
 - when several Python versions are installed, the bootstrap path prefers Python `3.11`
 - the resulting embedded runtime is the interpreter that wrapper scripts and service auto-start use afterward
+- `lkb_bootstrap_runtime --include-deep --prefetch-models` installs deep dependencies and downloads both deep models into `gateway/.models/`
+- `.models/` is machine-local state, is safe to delete and rebuild, and must not be committed to git

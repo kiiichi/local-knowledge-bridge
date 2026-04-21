@@ -81,6 +81,30 @@ class BootstrapRuntimeTests(unittest.TestCase):
             self.assertFalse((target_root / "pyvenv.cfg").exists())
             self.assertTrue((target_root / "Lib").exists())
 
+    def test_install_script_wires_prefetch_models_flag(self) -> None:
+        install_script = GATEWAY_ROOT.parent / "scripts" / "install_windows.ps1"
+        text = install_script.read_text(encoding="utf-8")
+        self.assertIn("[switch]$PrefetchModels", text)
+        self.assertIn("--prefetch-models", text)
+
+    def test_prefetch_models_invokes_embedded_runtime_with_src_path(self) -> None:
+        with scratch_dir("prefetch_runtime") as runtime_home:
+            embedded_python = runtime_home / "python.exe"
+            embedded_python.write_text("", encoding="utf-8")
+            with (
+                patch("local_knowledge_bridge.bootstrap_runtime.runtime_python", return_value=embedded_python),
+                patch("local_knowledge_bridge.bootstrap_runtime.gateway_root", return_value=GATEWAY_ROOT),
+                patch("local_knowledge_bridge.bootstrap_runtime.subprocess.run") as run,
+            ):
+                run.return_value.returncode = 0
+                run.return_value.stdout = ""
+                run.return_value.stderr = ""
+                bootstrap_runtime._prefetch_models()
+
+        command = run.call_args.args[0]
+        self.assertEqual(command[0], str(embedded_python))
+        self.assertIn("sys.path.insert(0", command[2])
+
 
 if __name__ == "__main__":
     unittest.main()
