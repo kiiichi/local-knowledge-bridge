@@ -8,6 +8,154 @@ Current scope:
 - `Obsidian`
 - `EndNote`
 
+## Quick Start For New Users
+
+This section is the shortest safe path for a first Windows deployment.  
+Run commands from PowerShell.
+
+### 1. Prerequisites
+
+Install or confirm:
+
+- Python 3.11+ available as `py` or `python`
+- Codex desktop or another Codex setup using `%USERPROFILE%\.codex`
+- readable local source paths for Obsidian and/or EndNote
+
+Check Python:
+
+```powershell
+py -3 --version
+```
+
+If `py` is not available:
+
+```powershell
+python --version
+```
+
+### 2. Install LKB Into Codex
+
+Clone or download this repository, then run:
+
+```powershell
+cd <repo>\local-knowledge-bridge
+.\scripts\install_windows.ps1 -Mode Copy -BootstrapRuntime
+```
+
+Use development link mode instead if you are editing this repo:
+
+```powershell
+cd <repo>\local-knowledge-bridge
+.\scripts\install_windows.ps1 -Mode Link -BootstrapRuntime
+```
+
+If PowerShell blocks script execution, run the same command through:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\install_windows.ps1 -Mode Copy -BootstrapRuntime
+```
+
+### 3. Configure Your Sources
+
+Configure Obsidian:
+
+```powershell
+$LKB = "$env:USERPROFILE\.codex\Function\local_knowledge_bridge"
+& "$LKB\lkb_configure.cmd" --obsidian "D:\Notes\Vault"
+```
+
+Configure EndNote:
+
+```powershell
+$LKB = "$env:USERPROFILE\.codex\Function\local_knowledge_bridge"
+& "$LKB\lkb_configure.cmd" --endnote "D:\EndNote\My Library.enl" --endnote-name "Main Library"
+```
+
+You can configure only one source if you do not use both.  
+Check the resulting config:
+
+```powershell
+& "$LKB\lkb_configure.cmd" --show
+```
+
+### 4. Build The Local Index
+
+Each machine builds its own index from its own source paths:
+
+```powershell
+& "$LKB\lkb_index.cmd" --force
+& "$LKB\lkb_index.cmd" --status
+```
+
+### 5. Verify Basic Retrieval
+
+Run diagnostics:
+
+```powershell
+& "$LKB\lkb_doctor.cmd" --json
+```
+
+Search:
+
+```powershell
+& "$LKB\lkb_search.cmd" both "passive linear optics" --profile balanced --limit 5
+```
+
+Ask:
+
+```powershell
+& "$LKB\lkb_ask.cmd" "What is the passive linear optics paper about?" --limit 3
+```
+
+Report:
+
+```powershell
+& "$LKB\lkb_report.cmd" "passive linear optics" --target both --profile balanced --limit 5 --read-top 3
+```
+
+### 6. Optional: Enable Deep Retrieval
+
+`deep` uses local model files and can be large. It is not downloaded lazily during search.  
+Run this only on machines where you want semantic/reranker retrieval:
+
+```powershell
+& "$LKB\lkb_bootstrap_runtime.cmd" --include-deep --prefetch-models
+```
+
+Models are cached under:
+
+```text
+<deployed-gateway>\.models\
+```
+
+Check readiness:
+
+```powershell
+& "$LKB\lkb_doctor.cmd" --json
+```
+
+In the JSON output, `deep_status.ready` should be `true`.  
+Then test deep retrieval:
+
+```powershell
+& "$LKB\lkb_search.cmd" both "passive linear optics" --profile deep --limit 5 --no-service
+```
+
+If model prefetch fails with a Hugging Face network timeout, retry when network access is available. The repo intentionally does not commit `.models/`.
+
+### 7. What Not To Copy Between Machines
+
+Do not copy these generated directories by default:
+
+- `gateway/runtime/`
+- `gateway/.index/`
+- `gateway/.cache/`
+- `gateway/.logs/`
+- `gateway/.models/`
+- `gateway/lkb_config.json`
+
+On each new machine, install, configure local paths, prefetch deep models if needed, and rebuild the index locally.
+
 ## Repository Layout
 
 ```text

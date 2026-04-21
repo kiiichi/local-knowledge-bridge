@@ -6,6 +6,9 @@ It is designed to be deployed into:
 
 - `C:\Users\<user>\.codex\Function\local_knowledge_bridge`
 
+For first-time deployment, start with the root repository `README.md` section `Quick Start For New Users`.  
+This gateway README is implementation-focused and does not replace the root deployment guide.
+
 The V1 gateway currently provides:
 
 - `lkb_index` for local index construction
