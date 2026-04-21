@@ -13,6 +13,8 @@ Current scope:
 This section is the shortest safe path for a first Windows deployment.  
 Run commands from PowerShell.
 
+PowerShell examples below use `&` as the call operator. It tells PowerShell to run a command whose path is stored in a variable or wrapped in quotes, for example `& "$LKB\lkb_doctor.cmd" --json`. The command examples after `$LKB = ...` can be run from any PowerShell working directory in the same terminal window.
+
 ### 1. Prerequisites
 
 Install or confirm:
