@@ -137,6 +137,31 @@ Check readiness:
 ```
 
 In the JSON output, `deep_status.ready` should be `true`.  
+
+Optional NVIDIA GPU setup:
+
+```powershell
+nvidia-smi
+```
+
+Read the `CUDA Version` shown by `nvidia-smi`; that is the maximum CUDA runtime your current NVIDIA driver supports. Do not choose the PyTorch wheel from the CUDA Toolkit version alone. If `nvidia-smi` shows `CUDA Version: 12.8`, use the CUDA 12.8 PyTorch wheel:
+
+```powershell
+& "$LKB\runtime\py311\python.exe" -m pip uninstall -y torch torchvision torchaudio
+& "$LKB\runtime\py311\python.exe" -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+```
+
+If your NVIDIA driver is new enough for CUDA 13.x, use the matching PyTorch command from the [official PyTorch selector](https://pytorch.org/get-started/locally/) instead of the `cu128` command above. [CUDA 13.x requires an R580+ NVIDIA driver](https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/index.html); installing CUDA Toolkit 13 alone is not sufficient.
+
+Verify GPU visibility:
+
+```powershell
+& "$LKB\runtime\py311\python.exe" -c "import torch; print(torch.__version__); print(torch.version.cuda); print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'no cuda')"
+& "$LKB\lkb_doctor.cmd" --json
+```
+
+In the JSON output, `deep_status.resolved_device` should be `cuda`. The default config value is `models.deep_device = cuda_if_available`, so no config edit is needed when PyTorch can see the GPU. If you intentionally want to force CPU, set `models.deep_device` to `cpu` in `lkb_config.json`.
+
 Then test deep retrieval:
 
 ```powershell
@@ -454,14 +479,31 @@ The current workspace has already verified:
 - `lkb_doctor --json` snapshot:
   - `obsidian_stale = true`
   - `endnote_stale = true`
-  - `obsidian_changed_notes = 4`
-  - `endnote_changed_pdfs = 0`
+  - `obsidian_changed_notes = 6`
+  - `endnote_changed_pdfs = 3`
+  - `deep_status.ready = true`
+  - `deep_status.models_cached = true`
+  - `deep_status.resolved_device = cuda`
   - `service.running = false`
+- GPU runtime snapshot:
+  - NVIDIA GPU: `NVIDIA GeForce RTX 5080 Laptop GPU`
+  - NVIDIA driver: `572.90`
+  - driver-reported CUDA capability: `12.8`
+  - embedded runtime torch: `2.11.0+cu128`
+  - `torch.cuda.is_available() = true`
 - `lkb_eval` snapshot:
   - eval set size: `6` cases
   - case mix: `4` tomography cases + `1` EndNote paraphrase case + `1` Obsidian-biased case
-  - `balanced`: `Recall@5 = 1.0`, `Recall@10 = 1.0`, `MRR@10 = 0.9167`, `nDCG@10 = 0.9385`, `AvgLatencyMs ~= 237.2`
-  - `baseline`: `Recall@5 = 1.0`, `Recall@10 = 1.0`, `MRR@10 = 0.9167`, `nDCG@10 = 0.9385`, `AvgLatencyMs ~= 222.9`
+- `lkb_eval` latest snapshot:
+  - `balanced`: `Recall@5 = 1.0`, `Recall@10 = 1.0`, `MRR@10 = 0.9167`, `nDCG@10 = 0.9385`, `AvgLatencyMs ~= 222.6`
+  - `baseline`: `Recall@5 = 1.0`, `Recall@10 = 1.0`, `MRR@10 = 0.9167`, `nDCG@10 = 0.9385`, `AvgLatencyMs ~= 454.4`
+- automated tests:
+  - `python -m unittest discover -s gateway/tests`
+  - `39` tests passed
+- deep smoke:
+  - direct `--profile deep --no-service --json` search passes on GPU
+  - service-path `--profile deep` has been verified for `search`, `ask`, and `report`
+  - deep hit payloads expose real `semantic_score` and `rerank_score`
 
 The current bundled `gateway/eval/cases.jsonl` is still a smoke regression set, but it is no longer tomography-only. It now includes paraphrase EndNote and Obsidian-biased cases and should keep expanding as the corpus evolves.
 

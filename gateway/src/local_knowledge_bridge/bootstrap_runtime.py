@@ -8,6 +8,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from .cli_io import configure_output
 from .config import load_config, save_config
 from .paths import gateway_root, requirements_deep, requirements_runtime, runtime_python, runtime_root
 
@@ -127,7 +128,7 @@ def _prefetch_models() -> None:
             "from local_knowledge_bridge.config import load_config; "
             "from local_knowledge_bridge.deep_models import prefetch_models; "
             "import json; "
-            "print(json.dumps(prefetch_models(load_config()), ensure_ascii=False))"
+            "print(json.dumps(prefetch_models(load_config()), ensure_ascii=True))"
         ),
     ]
     completed = subprocess.run(
@@ -146,6 +147,7 @@ def _prefetch_models() -> None:
 
 
 def main() -> int:
+    configure_output()
     args = parse_args()
     include_deep = bool(args.include_deep or args.prefetch_models)
     _create_runtime(args.force_recreate)

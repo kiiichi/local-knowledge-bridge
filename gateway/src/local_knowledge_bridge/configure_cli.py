@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import argparse
-import json
 from pathlib import Path
 
+from .cli_io import configure_output, print_json
 from .config import load_config, save_config
 
 
@@ -63,6 +63,7 @@ def _disable_endnote(config: dict, value: str) -> None:
 
 
 def main() -> int:
+    configure_output()
     args = parse_args()
     config = load_config()
     changed = False
@@ -83,6 +84,6 @@ def main() -> int:
         save_config(config)
 
     if args.show or changed or (not any([args.obsidian, args.endnote, args.disable_endnote])):
-        print(json.dumps(config, ensure_ascii=False, indent=2))
+        print_json(config)
 
     return 0

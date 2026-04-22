@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
+from local_knowledge_bridge.cli_io import configure_output, print_json
 from local_knowledge_bridge.config import load_config
 from local_knowledge_bridge.retrieval import build_index
 
@@ -18,9 +18,10 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
+    configure_output()
     args = parse_args()
     summary = build_index(load_config(), force=True, folder_prefix=args.folder)
-    print(json.dumps(summary, ensure_ascii=False, indent=2))
+    print_json(summary)
     return 0
 
 

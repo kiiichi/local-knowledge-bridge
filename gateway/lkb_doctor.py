@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
+from local_knowledge_bridge.cli_io import configure_output, print_json, print_text
 from local_knowledge_bridge.config import load_config
 from local_knowledge_bridge.doctor import doctor_report, render_doctor
 from local_knowledge_bridge.service_client import service_health
@@ -20,14 +20,15 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
+    configure_output()
     args = parse_args()
     config = load_config()
     health = service_health(config, timeout=1.0)
     report = doctor_report(config, service_health=health, force_refresh=args.refresh)
     if args.json:
-        print(json.dumps(report, ensure_ascii=False, indent=2))
+        print_json(report)
     else:
-        print(render_doctor(report, service_health=health))
+        print_text(render_doctor(report, service_health=health))
     return 0
 
 

@@ -40,7 +40,7 @@ It exposes these commands:
 
 1. For research or literature questions, call `lkb_ask.cmd` before relying on memory.
 2. Prefer `--profile fast` for normal retrieval.
-3. `--profile deep` is reserved for a later milestone and should not be the default path in the current implementation.
+3. Use `--profile deep` only when the user explicitly asks for deep retrieval or when higher recall/reranking is worth slower local model loading.
 4. If the user wants raw matches or diagnostics, use `lkb_search.cmd` or `lkb_report.cmd`.
 5. If the user asks to refresh first, use `lkb_index.cmd --force` or the command-level refresh flags.
 6. Separate direct local evidence from your inference in the final answer.
@@ -109,9 +109,16 @@ Runtime bootstrap:
 C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_bootstrap_runtime.cmd
 ```
 
+Deep setup when explicitly needed:
+
+```powershell
+C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_bootstrap_runtime.cmd --include-deep --prefetch-models
+C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_doctor.cmd --json
+```
+
 ## Notes
 
 - `fast` should remain lightweight and avoid loading deep models.
 - `balanced` now uses lightweight hybrid route scoring, but it still does not load deep models.
-- `deep` is intentionally not implemented in V1 and should fail explicitly rather than silently degrading.
+- `deep` requires prefetched local models under `gateway/.models/` and should fail explicitly rather than silently degrading if models or dependencies are missing.
 - This skill is only as useful as the user's local notes and library contents.

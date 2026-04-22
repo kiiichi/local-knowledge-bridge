@@ -32,6 +32,7 @@ The current retrieval stack is:
 - semantic route fusion over the global candidate set
 - reranking with `BAAI/bge-reranker-v2-m3`
 - isolated `deep_worker.py` service execution for `profile=deep`
+- Windows-safe CLI JSON/text output through `cli_io.py`
 
 Current V1 notes:
 
@@ -41,6 +42,7 @@ Current V1 notes:
 - `lkb_bootstrap_runtime --prefetch-models` is the formal deep deployment entry and caches models under `.models/`
 - `lkb_doctor --json` now reports `deep_status` for dependency, cache, and device readiness
 - service stdout / stderr append to `.logs/service.log`
+- current local GPU smoke resolves `deep_status.resolved_device` to `cuda` with PyTorch `2.11.0+cu128`
 - `gateway/eval/cases.jsonl` is a smoke regression set grounded in the active local corpus and should be curated further as the corpus evolves
 - the current bundled cases cover non-Gaussian-state tomography, homodyne tomography, third-order OPO state tomography, single-mode squeezed-light tomography, one EndNote paraphrase case, and one Obsidian-biased case
 

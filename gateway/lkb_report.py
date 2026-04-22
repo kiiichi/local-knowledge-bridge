@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
+from local_knowledge_bridge.cli_io import configure_output, print_json, print_text
 from local_knowledge_bridge.config import load_config
 from local_knowledge_bridge.reporting import build_report_payload
 from local_knowledge_bridge.retrieval import search_local
@@ -49,6 +49,7 @@ def build_request(args: argparse.Namespace) -> ReportRequest:
 
 
 def main() -> int:
+    configure_output()
     args = parse_args()
     config = load_config()
     request = build_request(args)
@@ -58,9 +59,9 @@ def main() -> int:
     else:
         payload = request_json(config, "/report", payload=request_payload)
     if args.json:
-        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        print_json(payload)
     else:
-        print(payload["report_markdown"])
+        print_text(payload["report_markdown"])
     return 0
 
 

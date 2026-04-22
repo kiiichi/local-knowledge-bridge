@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
+from local_knowledge_bridge.cli_io import configure_output, print_json, print_text
 from local_knowledge_bridge.config import load_config
 from local_knowledge_bridge.evals import evaluate_cases, render_eval
 
@@ -20,12 +20,13 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
+    configure_output()
     args = parse_args()
     metrics = evaluate_cases(load_config(), profile=args.profile, baseline=args.baseline)
     if args.json:
-        print(json.dumps(metrics, ensure_ascii=False, indent=2))
+        print_json(metrics)
     else:
-        print(render_eval(metrics))
+        print_text(render_eval(metrics))
     return 0
 
 
