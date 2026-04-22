@@ -46,6 +46,18 @@ It exposes these commands:
 6. Separate direct local evidence from your inference in the final answer.
 7. If no direct local evidence is found, say that explicitly.
 
+## Multi-Search Policy
+
+When the user asks for multiple independent knowledge-base searches, run them sequentially unless the user explicitly asks for parallel execution.
+
+For each search:
+
+1. Run one `lkb_search.cmd`, `lkb_report.cmd`, or `lkb_ask.cmd` command.
+2. Read and summarize the result before starting the next search.
+3. Keep evidence separated by query.
+4. Do not use `--refresh-now` repeatedly across multiple searches; refresh once before the sequence if needed.
+5. Do not run multiple `--profile deep` searches concurrently. Deep searches must be sequential.
+
 ## Output Format
 
 - For EndNote-backed evidence, cite the EndNote entry title and locator, not the local PDF path.

@@ -74,6 +74,26 @@ class DeepServiceTests(unittest.TestCase):
             with self.assertRaises(module.DeepWorkerTimeoutError):
                 module._run_deep_worker({"service": {"request_timeout_seconds": 3}}, {"operation": "search"})
 
+    def test_run_deep_worker_hides_child_console_window(self) -> None:
+        module = load_script_module("lkb_service")
+        completed = subprocess.CompletedProcess(
+            args=["python.exe"],
+            returncode=0,
+            stdout=b'{"hits": []}',
+            stderr=b"",
+        )
+        with (
+            patch.object(module, "_preferred_python", return_value="python.exe"),
+            patch.object(module, "hidden_subprocess_kwargs", return_value={"creationflags": 134217728}),
+            patch.object(module, "subprocess") as subprocess_module,
+        ):
+            subprocess_module.PIPE = subprocess.PIPE
+            subprocess_module.run.return_value = completed
+            payload = module._run_deep_worker({}, {"operation": "search"})
+
+        self.assertEqual(payload, {"hits": []})
+        self.assertEqual(subprocess_module.run.call_args.kwargs["creationflags"], 134217728)
+
 
 class DoctorDeepStatusTests(unittest.TestCase):
     def test_diagnose_gateway_includes_deep_status(self) -> None:

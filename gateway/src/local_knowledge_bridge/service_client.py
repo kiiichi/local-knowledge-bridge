@@ -12,6 +12,33 @@ from typing import Any
 from .paths import gateway_script_path, runtime_python, runtime_root, service_log_path
 
 
+def hidden_subprocess_kwargs(*, detach: bool = False) -> dict[str, Any]:
+    if sys.platform != "win32":
+        return {}
+
+    kwargs: dict[str, Any] = {}
+    creationflags = 0
+    if detach:
+        if hasattr(subprocess, "DETACHED_PROCESS"):
+            creationflags |= int(subprocess.DETACHED_PROCESS)
+        if hasattr(subprocess, "CREATE_NEW_PROCESS_GROUP"):
+            creationflags |= int(subprocess.CREATE_NEW_PROCESS_GROUP)
+    elif hasattr(subprocess, "CREATE_NO_WINDOW"):
+        creationflags |= int(subprocess.CREATE_NO_WINDOW)
+
+    if creationflags:
+        kwargs["creationflags"] = creationflags
+
+    startupinfo_type = getattr(subprocess, "STARTUPINFO", None)
+    if startupinfo_type is not None:
+        startupinfo = startupinfo_type()
+        startupinfo.dwFlags |= int(getattr(subprocess, "STARTF_USESHOWWINDOW", 0))
+        startupinfo.wShowWindow = int(getattr(subprocess, "SW_HIDE", 0))
+        kwargs["startupinfo"] = startupinfo
+
+    return kwargs
+
+
 def _base_url(config: dict) -> str:
     service = config.get("service", {})
     host = service.get("host", "127.0.0.1")
@@ -30,6 +57,7 @@ def _preferred_python(config: dict) -> str:
                 stderr=subprocess.DEVNULL,
                 timeout=10,
                 check=False,
+                **hidden_subprocess_kwargs(),
             )
         except Exception:
             return False
@@ -78,11 +106,6 @@ def start_service(config: dict) -> None:
         "--port",
         str(config.get("service", {}).get("port", 53744)),
     ]
-    creationflags = 0
-    if hasattr(subprocess, "DETACHED_PROCESS"):
-        creationflags |= int(subprocess.DETACHED_PROCESS)
-    if hasattr(subprocess, "CREATE_NEW_PROCESS_GROUP"):
-        creationflags |= int(subprocess.CREATE_NEW_PROCESS_GROUP)
     log_path = service_log_path()
     log_path.parent.mkdir(parents=True, exist_ok=True)
     with log_path.open("ab") as log_file:
@@ -91,7 +114,7 @@ def start_service(config: dict) -> None:
             cwd=str(gateway_script_path("lkb_service.py").parent),
             stdout=log_file,
             stderr=log_file,
-            creationflags=creationflags,
+            **hidden_subprocess_kwargs(detach=True),
         )
 
 

@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 from local_knowledge_bridge.config import load_config, selected_profile
 from local_knowledge_bridge.reporting import build_answer_payload, build_report_payload
 from local_knowledge_bridge.retrieval import search_local
-from local_knowledge_bridge.service_client import _preferred_python
+from local_knowledge_bridge.service_client import _preferred_python, hidden_subprocess_kwargs
 from local_knowledge_bridge.service_models import AskRequest, ReportRequest, SearchRequest
 
 DEEP_REQUEST_LOCK = threading.Lock()
@@ -63,6 +63,7 @@ def _run_deep_worker(config: dict, payload: dict[str, Any]) -> dict[str, Any]:
             cwd=str(_deep_worker_script().parent),
             timeout=timeout_seconds,
             check=False,
+            **hidden_subprocess_kwargs(),
         )
     except subprocess.TimeoutExpired as exc:
         raise DeepWorkerTimeoutError(
