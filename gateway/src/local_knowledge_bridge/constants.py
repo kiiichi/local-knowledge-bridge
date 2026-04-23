@@ -4,6 +4,9 @@ SCHEMA_VERSION = 1
 SERVICE_HOST = "127.0.0.1"
 SERVICE_PORT = 53744
 RRF_K = 60
+DEFAULT_RELEASE_API_URL = "https://api.github.com/repos/kiiichi/local-knowledge-bridge/releases/latest"
+DEFAULT_RELEASE_URL = "https://github.com/kiiichi/local-knowledge-bridge/releases"
+DEFAULT_UPDATE_TIMEOUT_SECONDS = 5.0
 
 PROFILE_SETTINGS = {
     "fast": {

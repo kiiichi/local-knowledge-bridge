@@ -215,7 +215,7 @@ def _normalized_index_status(config: dict, source_status: dict) -> dict:
 
 def diagnose_gateway(config: dict | None = None, *, force_refresh: bool = False) -> dict:
     config = config or load_config()
-    version_status = get_version_status(force_refresh=force_refresh)
+    version_status = get_version_status(force_refresh=force_refresh, config=config)
     source_status = get_source_compatibility_status(config, force_refresh=force_refresh)
     endnote_status, auth_status = _endnote_source_status(config)
     source_status["endnote"] = endnote_status
@@ -264,6 +264,12 @@ def render_doctor(report: dict, service_health: dict | None = None) -> str:
     lines.append(f"- source: {version_status.get('source')}")
     if version_status.get("error"):
         lines.append(f"- error: {version_status.get('error')}")
+    if version_status.get("detail"):
+        lines.append(f"- detail: {version_status.get('detail')}")
+    if version_status.get("release_url"):
+        lines.append(f"- release_url: {version_status.get('release_url')}")
+    if version_status.get("published_at"):
+        lines.append(f"- published_at: {version_status.get('published_at')}")
     lines.append("")
 
     lines.append("SOURCES:")

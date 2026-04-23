@@ -83,6 +83,7 @@ def _normalize_config(config: dict[str, Any]) -> dict[str, Any]:
     normalized.setdefault("index", {})
     normalized.setdefault("models", {})
     normalized.setdefault("service", {})
+    normalized.setdefault("updates", {})
     normalized.setdefault("retrieval", {})
 
     if not normalized["runtime"].get("python_home"):

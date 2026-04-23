@@ -97,6 +97,12 @@ Run diagnostics:
 & "$LKB\lkb_doctor.cmd" --json
 ```
 
+Check GitHub for a newer public release:
+
+```powershell
+& "$LKB\lkb_doctor.cmd" --refresh
+```
+
 Search:
 
 ```powershell
@@ -235,10 +241,11 @@ Implemented now:
 - service stdout / stderr logging to `gateway/.logs/service.log`
 - self-contained embedded runtime bootstrap
 - service-first execution on `127.0.0.1:53744`
+- remote GitHub release lookup through `lkb_doctor --refresh`
 
 Not implemented yet:
 
-- remote release lookup beyond local version files
+- automatic self-update that downloads and applies a release without an explicit reinstall
 
 Current retrieval shape:
 

@@ -38,7 +38,7 @@ Current V1 notes:
 
 - `lkb_doctor` mirrors the legacy `kb_doctor` sections for `VERSION`, `SOURCES`, `AUTHORIZATION`, and `INDEX`
 - `lkb_eval` mirrors the legacy `kb_eval` shape for `profile`, `cases`, `metrics`, and `per_case`
-- version lookup is currently local-only and reads the gateway `VERSION` files
+- version lookup reads the gateway `VERSION` files and can check GitHub releases with `lkb_doctor --refresh`
 - `lkb_bootstrap_runtime --prefetch-models` is the formal deep deployment entry and caches models under `.models/`
 - `lkb_doctor --json` now reports `deep_status` for dependency, cache, and device readiness
 - service stdout / stderr append to `.logs/service.log`
