@@ -20,7 +20,7 @@ The local gateway is expected at:
 
 `C:\Users\<user>\.codex\Function\local_knowledge_bridge`
 
-It exposes these commands:
+Available commands:
 
 - `lkb_ask.cmd`
 - `lkb_search.cmd`
@@ -33,18 +33,17 @@ It exposes these commands:
 - `lkb_eval.cmd`
 - `lkb_bootstrap_runtime.cmd`
 
-`kb_*` names belong to the legacy packaged reference and should not be used as the active engineering surface for this skill.
-`lkb_*` remains the command prefix, and `lkb` is also a valid user-facing shorthand for this skill.
+Use the `lkb_*` commands for this skill. Do not call legacy `kb_*` commands from this skill flow.
 
 ## Workflow
 
 1. For research or literature questions, call `lkb_ask.cmd` before relying on memory.
-2. Prefer `--profile fast` for normal retrieval.
-3. Use `--profile deep` only when the user explicitly asks for deep retrieval or when higher recall/reranking is worth slower local model loading.
+2. Prefer `--profile fast` for the default answer flow.
+3. Use `--profile deep` only when the user explicitly asks for deep retrieval or when higher recall and reranking are worth the extra local runtime cost.
 4. If the user wants raw matches or diagnostics, use `lkb_search.cmd` or `lkb_report.cmd`.
-5. If the user asks to refresh first, use `lkb_index.cmd --force` or the command-level refresh flags.
+5. If the user asks to refresh first, use `lkb_refresh.cmd` or refresh once before the query sequence.
 6. Separate direct local evidence from your inference in the final answer.
-7. If no direct local evidence is found, say that explicitly.
+7. If no direct local evidence is found, say that explicitly instead of silently falling back.
 
 ## Multi-Search Policy
 
@@ -55,7 +54,7 @@ For each search:
 1. Run one `lkb_search.cmd`, `lkb_report.cmd`, or `lkb_ask.cmd` command.
 2. Read and summarize the result before starting the next search.
 3. Keep evidence separated by query.
-4. Do not use `--refresh-now` repeatedly across multiple searches; refresh once before the sequence if needed.
+4. Do not use repeated refresh flags across multiple searches; refresh once before the sequence if needed.
 5. Do not run multiple `--profile deep` searches concurrently. Deep searches must be sequential.
 
 ## Output Format
@@ -72,21 +71,23 @@ For each search:
 - If no direct local evidence is found, say that explicitly.
 
 Examples:
+
 - `laser locking tutorial = EndNote: Tutorial on laser locking techniques and the manufacturing of vapor cells for spectroscopy`
 - `Advanced interferometry = EndNote: Advanced interferometry for gravitational wave detection`
 - Later references:
   - `laser locking tutorial, p.14-15`
   - `Advanced interferometry, p.125-127`
 
-## Alias Examples
+## Trigger Examples
 
 These user requests should activate this skill:
 
-- `使用 lkb 检索 "passive linear optics"`
+- `use lkb to search passive linear optics`
+- `answer with lkb`
+- `search my local notes with lkb`
+- `使用 lkb 检索 passive linear optics`
 - `用 lkb 查一下 balanced detector`
 - `基于 lkb 回答这个问题`
-- `search with lkb`
-- `answer with lkb`
 
 ## Preferred Commands
 
@@ -108,9 +109,10 @@ Combined report:
 C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_report.cmd "<query>" --target both --profile balanced --limit 8 --read-top 3
 ```
 
-Config and status:
+Refresh and status:
 
 ```powershell
+C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_refresh.cmd
 C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_configure.cmd --show
 C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_index.cmd --status
 ```
@@ -128,9 +130,8 @@ C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_bootstrap_runtime.cmd
 C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_doctor.cmd --json
 ```
 
-## Notes
+## Behavior Notes
 
-- `fast` should remain lightweight and avoid loading deep models.
-- `balanced` now uses lightweight hybrid route scoring, but it still does not load deep models.
-- `deep` requires prefetched local models under `gateway/.models/` and should fail explicitly rather than silently degrading if models or dependencies are missing.
-- This skill is only as useful as the user's local notes and library contents.
+- `fast` and `balanced` must not load deep models.
+- `deep` requires prefetched local models under `gateway/.models/`.
+- Deep retrieval should fail explicitly when models or dependencies are missing.
