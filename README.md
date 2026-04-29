@@ -35,7 +35,7 @@ All indexes, logs, models, runtime files, and configuration stay on your machine
 
 | Method / 支持方式 | Link / 链接 |
 | --- | --- |
-| WeChat / 微信 | [![WeChat](https://img.shields.io/badge/WeChat-Kiiichi-07C160?logo=wechat&logoColor=white)](sponsor-wechat.png) |
+| WeChat / 微信 | [![WeChat](https://img.shields.io/badge/WeChat-Kiiichi-07C160?logo=wechat&logoColor=white)](sponsor-wechat.png?raw=1) |
 | PayPal | [![PayPal](https://img.shields.io/badge/PayPal-Kiiichi-00457C?logo=paypal&logoColor=white)](https://www.paypal.com/paypalme/kiiichi) |
 
 **English**
