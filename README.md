@@ -1,6 +1,6 @@
 # Local Knowledge Bridge
 
-`Local Knowledge Bridge` installs a local Codex skill and Windows gateway that search your own knowledge sources before falling back to model memory.
+`Local Knowledge Bridge` installs a local Codex skill and Windows gateway that searches your own notes, reference libraries, PDFs, Office documents, and folders before falling back to model memory.
 
 Supported sources:
 
@@ -9,16 +9,14 @@ Supported sources:
 - `Zotero` libraries, notes, annotations, full-text cache, and readable attachments
 - Local folder knowledge sources with Markdown, text, PDF, DOCX, PPTX, and XLSX files
 
-All indexes, logs, models, and runtime files stay on the local machine.
+All indexes, logs, models, runtime files, and configuration stay on the local machine.
 
 ## Prerequisites
-
-Install or confirm:
 
 - Windows PowerShell
 - Python 3.11+ available as `py` or `python`
 - Codex desktop or another Codex setup that uses `%USERPROFILE%\.codex`
-- readable local paths for at least one supported source
+- At least one readable local knowledge source
 
 Check Python:
 
@@ -32,9 +30,7 @@ If `py` is not available:
 python --version
 ```
 
-## Install
-
-Always start with the guided setup wizard for first-time deployment, redeployment, or configuration:
+## Quick Start
 
 Double-click `lkb_setup.cmd` from the repo root, or run:
 
@@ -43,124 +39,25 @@ cd <repo>\local-knowledge-bridge
 .\lkb_setup.cmd
 ```
 
-The setup wizard first asks whether to configure the existing deployment or install/redeploy. Configuration opens the deployed maintenance wizard, where source paths, route-weight presets, deep settings, and index rebuilds are managed. Deployment can also install deep dependencies and prefetch the default models.
+The setup wizard asks whether to:
 
-For a normal non-interactive install:
+- configure the existing deployment
+- install or redeploy Local Knowledge Bridge
 
-```powershell
-cd <repo>\local-knowledge-bridge
-.\scripts\install_windows.ps1 -Mode Copy -BootstrapRuntime
-```
+Configuration opens the deployed maintenance wizard. Use it to add or edit Obsidian, EndNote, Zotero, and folder sources, choose route-weight presets, configure deep retrieval, inspect status, and rebuild the database.
 
-For a development install that reflects repo edits immediately:
-
-```powershell
-cd <repo>\local-knowledge-bridge
-.\scripts\install_windows.ps1 -Mode Link -BootstrapRuntime
-```
-
-If PowerShell blocks script execution:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\lkb_setup.ps1
-```
-
-After install, set a PowerShell variable for the deployed gateway path. Examples below use `&` to run commands through that path:
+After setup, search everything configured:
 
 ```powershell
 $LKB = "$env:USERPROFILE\.codex\Function\local_knowledge_bridge"
-```
-
-## Configure Sources
-
-For guided source setup, route-weight presets, deep setup, and index rebuilds, start the repo setup wizard and choose `Configure existing deployment`:
-
-```powershell
-cd <repo>\local-knowledge-bridge
-.\lkb_setup.cmd
-```
-
-The setup wizard opens `$LKB\lkb_wizard.cmd` for configuration. Both setup and maintenance wizards edit only `lkb_config.json`; removing an entry from a wizard does not delete your real notes, libraries, attachments, or folders. Long-running setup, deep, and index commands show `[RUNNING]`, `[DONE]`, or `[FAILED]` status; deployed maintenance commands log details to `$LKB\.logs\wizard.log`.
-
-Configure Obsidian:
-
-```powershell
-& "$LKB\lkb_configure.cmd" --obsidian "D:\Notes\Vault"
-```
-
-Configure EndNote:
-
-```powershell
-& "$LKB\lkb_configure.cmd" --endnote "D:\EndNote\My Library.enl" --endnote-name "Main Library"
-```
-
-Configure Zotero:
-
-```powershell
-& "$LKB\lkb_configure.cmd" --zotero "$env:APPDATA\Zotero\Zotero\Profiles\<profile>\zotero\zotero.sqlite"
-```
-
-Configure one or more folder knowledge sources:
-
-```powershell
-& "$LKB\lkb_configure.cmd" --folder-library "D:\Research Materials" --folder-name "Research Materials"
-& "$LKB\lkb_configure.cmd" --folder-library "E:\Project Files" --folder-name "Project Files"
-```
-
-You can configure any supported source combination. Show the current configuration with:
-
-```powershell
-& "$LKB\lkb_configure.cmd" --show
-```
-
-## Build And Refresh The Index
-
-The setup wizard opens the deployed maintenance wizard for index status, refresh, or full rebuild after confirmation. You can also build the local index manually:
-
-```powershell
-& "$LKB\lkb_index.cmd" --force
-& "$LKB\lkb_index.cmd" --status
-```
-
-Refresh the index after source changes:
-
-```powershell
-& "$LKB\lkb_refresh.cmd"
-```
-
-To rebuild only an Obsidian folder prefix:
-
-```powershell
-& "$LKB\lkb_refresh.cmd" --folder "Projects"
-```
-
-## Search, Ask, And Report
-
-Use `fast` for lightweight answers, `balanced` for the default user-facing retrieval flow, and `deep` only after deep setup is complete.
-
-Search:
-
-```powershell
 & "$LKB\lkb_search.cmd" both "passive linear optics" --profile balanced --limit 5
 ```
 
-`both` searches all configured sources. Use `obsidian`, `endnote`, `zotero`, or `folder` to restrict a query to one source family.
-
-Ask:
+Ask a question:
 
 ```powershell
 & "$LKB\lkb_ask.cmd" "What is the passive linear optics paper about?" --profile fast --limit 3
 ```
-
-Report:
-
-```powershell
-& "$LKB\lkb_report.cmd" "passive linear optics" --target both --profile balanced --limit 5 --read-top 3
-```
-
-`lkb_search`, `lkb_ask`, and `lkb_report` use the local HTTP service by default and start it automatically when needed. Add `--no-service` if you want to run in-process instead.
-
-## Diagnostics And Version Check
 
 Run diagnostics:
 
@@ -168,19 +65,94 @@ Run diagnostics:
 & "$LKB\lkb_doctor.cmd" --json
 ```
 
-Check whether GitHub has a newer public release:
+## Command Overview
+
+Main deployed commands:
+
+- `lkb_wizard.cmd` - maintenance wizard for source configuration, route weights, deep setup, and index rebuilds
+- `lkb_search.cmd` - raw retrieval results
+- `lkb_ask.cmd` - answer synthesis from local evidence
+- `lkb_report.cmd` - structured report from retrieved evidence
+- `lkb_index.cmd` / `lkb_refresh.cmd` - index status and rebuilds
+- `lkb_doctor.cmd` - source, index, service, version, and deep diagnostics
+- `lkb_bootstrap_runtime.cmd` - embedded runtime repair and optional deep model prefetch
+
+Search targets:
+
+- `both` - all configured source families
+- `obsidian`
+- `endnote`
+- `zotero`
+- `folder`
+
+Profiles:
+
+- `fast` - lightweight local retrieval, default for quick answers
+- `balanced` - broader lightweight retrieval
+- `deep` - semantic scoring and reranking with local models
+
+## Install And Configuration Details
+
+The guided entry is always:
 
 ```powershell
-& "$LKB\lkb_doctor.cmd" --refresh
+.\lkb_setup.cmd
 ```
 
-`lkb_doctor --refresh` checks release metadata and reports version status. It does not update the installation automatically.
+For non-interactive install:
 
-## Optional: Enable Deep Retrieval
+```powershell
+.\scripts\install_windows.ps1 -Mode Copy -BootstrapRuntime
+```
+
+For development install that reflects repo edits immediately:
+
+```powershell
+.\scripts\install_windows.ps1 -Mode Link -BootstrapRuntime
+```
+
+If PowerShell blocks scripts:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\lkb_setup.ps1
+```
+
+Manual source configuration remains available:
+
+```powershell
+& "$LKB\lkb_configure.cmd" --obsidian "D:\Notes\Vault"
+& "$LKB\lkb_configure.cmd" --endnote "D:\EndNote\My Library.enl" --endnote-name "Main Library"
+& "$LKB\lkb_configure.cmd" --zotero "$env:APPDATA\Zotero\Zotero\Profiles\<profile>\zotero\zotero.sqlite"
+& "$LKB\lkb_configure.cmd" --folder-library "D:\Research Materials" --folder-name "Research Materials"
+```
+
+The wizards and CLI only edit LKB configuration and generated indexes. Removing a source entry does not delete your real notes, libraries, attachments, or folders.
+
+## Indexing
+
+Build or rebuild the local database:
+
+```powershell
+& "$LKB\lkb_index.cmd" --force
+```
+
+Show index status:
+
+```powershell
+& "$LKB\lkb_index.cmd" --status
+```
+
+Refresh after source changes:
+
+```powershell
+& "$LKB\lkb_refresh.cmd"
+```
+
+## Optional Deep Retrieval
 
 `deep` uses machine-local model files under `.models` and does not download them lazily during a query.
 
-Prepare the runtime and prefetch the deep models:
+Prepare deep dependencies and prefetch the default models:
 
 ```powershell
 & "$LKB\lkb_bootstrap_runtime.cmd" --include-deep --prefetch-models
@@ -192,30 +164,51 @@ Check readiness:
 & "$LKB\lkb_doctor.cmd" --json
 ```
 
-In the JSON output, `deep_status.ready` should be `true`.
-
 Test deep retrieval:
 
 ```powershell
 & "$LKB\lkb_search.cmd" both "passive linear optics" --profile deep --limit 5 --no-service
 ```
 
-If you want GPU deep retrieval, confirm that the embedded runtime can see your NVIDIA GPU:
+If you want GPU deep retrieval, confirm the embedded runtime can see CUDA:
 
 ```powershell
 nvidia-smi
 & "$LKB\runtime\py311\python.exe" -c "import torch; print(torch.__version__); print(torch.version.cuda); print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'no cuda')"
 ```
 
-When changing the PyTorch wheel in the embedded runtime, choose the build that matches the CUDA runtime reported by `nvidia-smi` and use the [official PyTorch selector](https://pytorch.org/get-started/locally/).
+## Development
 
-## Troubleshooting
-
-If PowerShell blocks scripts:
+Run the test suite from the repo root:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\lkb_setup.ps1
+python -m unittest discover -s gateway\tests
 ```
+
+Compile-check the main entrypoints:
+
+```powershell
+python -m py_compile gateway\lkb_wizard.py gateway\src\local_knowledge_bridge\wizard.py gateway\src\local_knowledge_bridge\terminal_ui.py
+```
+
+Source code lives under:
+
+- `gateway/lkb_*.py` - CLI entrypoints
+- `gateway/src/local_knowledge_bridge/` - shared implementation modules
+- `gateway/templates/lkb_config.template.json` - default config
+- `scripts/` - repo install/setup scripts
+- `skill/` - installed Codex skill content
+
+Generated local state is intentionally not committed:
+
+- `gateway/runtime/`
+- `gateway/.cache/`
+- `gateway/.index/`
+- `gateway/.logs/`
+- `gateway/.models/`
+- `gateway/lkb_config.json`
+
+## Troubleshooting
 
 If a source path is missing or unreadable:
 
@@ -224,7 +217,7 @@ If a source path is missing or unreadable:
 & "$LKB\lkb_doctor.cmd" --json
 ```
 
-If the service path fails or throws `ConnectionResetError`, inspect the service log and retry with `--no-service` to separate transport issues from retrieval behavior:
+If the service path fails or throws `ConnectionResetError`, inspect the service log and retry with `--no-service`:
 
 ```powershell
 Get-Content "$LKB\.logs\service.log" -Tail 80
@@ -236,18 +229,3 @@ If `deep_status.ready` is `false`, rerun:
 ```powershell
 & "$LKB\lkb_bootstrap_runtime.cmd" --include-deep --prefetch-models
 ```
-
-If model prefetch fails with a network timeout, retry when network access is available.
-
-## Machine-Local Data
-
-Do not copy these generated paths between machines from the deployed gateway root:
-
-- `runtime/`
-- `.index/`
-- `.cache/`
-- `.logs/`
-- `.models/`
-- `lkb_config.json`
-
-On each new machine, install the gateway, configure local source paths, prefetch deep models if needed, and build the index locally.

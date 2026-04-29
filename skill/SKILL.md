@@ -1,6 +1,6 @@
 ---
 name: local-knowledge-bridge
-description: Search the user's local Obsidian, EndNote, Zotero, and folder knowledge sources before answering research questions. Trigger this skill when the user explicitly mentions lkb, asks to use lkb to search or answer, or wants Codex to ground answers in local notes, papers, PDFs, local folders, and reference libraries rather than model memory first.
+description: Search the user's local Obsidian, EndNote, Zotero, and folder knowledge sources before answering research questions. Use when the user mentions lkb, asks to search local notes/libraries/papers/folders, or wants answers grounded in local evidence rather than model memory first.
 ---
 
 # Local Knowledge Bridge
@@ -9,19 +9,37 @@ Use this skill to answer research questions from the user's local knowledge base
 
 ## Hard Rules
 
-- Treat the configured Obsidian vault as read-only.
-- Treat the configured EndNote library and `.Data` folder as read-only.
-- Treat the configured Zotero library and folder knowledge sources as read-only.
-- Never create helper files in the source vault, source library, source PDF folders, Zotero storage, or folder knowledge sources.
-- Keep all derived artifacts inside `C:\Users\<user>\.codex\Function\local_knowledge_bridge`.
+- Treat Obsidian, EndNote, Zotero, and folder knowledge sources as read-only.
+- Never write helper files into a source vault, reference library, attachment directory, Zotero storage, or folder source.
+- Keep derived artifacts inside the deployed gateway: `C:\Users\<user>\.codex\Function\local_knowledge_bridge`.
+- Use `lkb_*` commands only. Do not call legacy `kb_*` commands.
+- If no direct local evidence is found, say that explicitly instead of silently falling back.
 
-## Gateway
+## Setup And Maintenance
 
-The local gateway is expected at:
+Repo-level install, redeploy, or configuration starts from the source repo root:
 
-`C:\Users\<user>\.codex\Function\local_knowledge_bridge`
+```powershell
+.\lkb_setup.cmd
+```
 
-Available commands:
+That setup entry can install/redeploy or open the deployed maintenance wizard:
+
+```powershell
+C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_wizard.cmd
+```
+
+Use the wizard for source paths, route-weight presets, deep setup, status checks, and index rebuilds.
+
+## Gateway Commands
+
+Expected deployed gateway:
+
+```text
+C:\Users\<user>\.codex\Function\local_knowledge_bridge
+```
+
+Main commands:
 
 - `lkb_ask.cmd`
 - `lkb_search.cmd`
@@ -35,65 +53,27 @@ Available commands:
 - `lkb_eval.cmd`
 - `lkb_bootstrap_runtime.cmd`
 
-Use the `lkb_*` commands for this skill. Do not call legacy `kb_*` commands from this skill flow.
+Targets:
 
-## Workflow
+- `both` means all configured source families
+- `obsidian`
+- `endnote`
+- `zotero`
+- `folder`
 
-1. For repository install, redeploy, or configuration, start with `lkb_setup.cmd` from the source repo root.
-2. If setup action is configuration, it opens the deployed `lkb_wizard.cmd` for source path changes, route-weight presets, deep setup, or index rebuilds.
-3. For research or literature questions, call `lkb_ask.cmd` before relying on memory.
-4. Prefer `--profile fast` for the default answer flow.
-5. Use `--profile deep` only when the user explicitly asks for deep retrieval or when higher recall and reranking are worth the extra local runtime cost.
-6. If the user wants raw matches or diagnostics, use `lkb_search.cmd` or `lkb_report.cmd`.
-7. If the user asks to refresh first, use `lkb_refresh.cmd` or refresh once before the query sequence.
-8. Separate direct local evidence from your inference in the final answer.
-9. If no direct local evidence is found, say that explicitly instead of silently falling back.
+Profiles:
 
-## Multi-Search Policy
+- `fast` for default lightweight answers
+- `balanced` for broader local retrieval
+- `deep` only when explicitly useful; deep searches must be sequential
 
-When the user asks for multiple independent knowledge-base searches, run them sequentially unless the user explicitly asks for parallel execution.
+## Research Workflow
 
-For each search:
-
-1. Run one `lkb_search.cmd`, `lkb_report.cmd`, or `lkb_ask.cmd` command.
-2. Read and summarize the result before starting the next search.
-3. Keep evidence separated by query.
-4. Do not use repeated refresh flags across multiple searches; refresh once before the sequence if needed.
-5. Do not run multiple `--profile deep` searches concurrently. Deep searches must be sequential.
-
-## Output Format
-
-- For EndNote-backed evidence, cite the EndNote entry title and locator, not the local PDF path.
-- Default citation form:
-  - `EndNote: <title>, locator: <locator>`
-- Do not emit Markdown local-file links or Windows file paths unless the user explicitly asks for them.
-- If the same source will be mentioned multiple times in one answer, define a short alias on first mention:
-  - `<alias> = EndNote: <title>`
-- After defining the alias, cite later mentions as:
-  - `<alias>, <locator>`
-- Keep direct local evidence separate from inference.
-- If no direct local evidence is found, say that explicitly.
-
-Examples:
-
-- `laser locking tutorial = EndNote: Tutorial on laser locking techniques and the manufacturing of vapor cells for spectroscopy`
-- `Advanced interferometry = EndNote: Advanced interferometry for gravitational wave detection`
-- Later references:
-  - `laser locking tutorial, p.14-15`
-  - `Advanced interferometry, p.125-127`
-
-## Trigger Examples
-
-These user requests should activate this skill:
-
-- `use lkb to search passive linear optics`
-- `answer with lkb`
-- `search my local notes with lkb`
-- `使用 lkb 检索 passive linear optics`
-- `用 lkb 查一下 balanced detector`
-- `基于 lkb 回答这个问题`
-
-## Preferred Commands
+1. For research or literature questions, call `lkb_ask.cmd` before relying on memory.
+2. Prefer `--profile fast` unless the user asks for raw matches, broader recall, or deep retrieval.
+3. Use `lkb_search.cmd` for raw matches and `lkb_report.cmd` for structured evidence review.
+4. Refresh once before a query sequence only when the user asks to refresh or sources are likely stale.
+5. Separate direct local evidence from inference in the answer.
 
 Primary answer:
 
@@ -107,44 +87,46 @@ Raw search:
 C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_search.cmd both "<query>" --profile balanced --limit 10
 ```
 
-Use target `obsidian`, `endnote`, `zotero`, or `folder` when the user explicitly asks to restrict the search. `both` means all configured source families.
-
 Combined report:
 
 ```powershell
 C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_report.cmd "<query>" --target both --profile balanced --limit 8 --read-top 3
 ```
 
-Refresh and status:
+Status:
 
 ```powershell
-C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_refresh.cmd
 C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_configure.cmd --show
 C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_index.cmd --status
+C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_doctor.cmd --json
 ```
 
-Repository install or redeploy:
-
-```powershell
-cd <repo>\local-knowledge-bridge
-.\lkb_setup.cmd
-```
-
-Runtime bootstrap:
-
-```powershell
-C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_bootstrap_runtime.cmd
-```
-
-Deep setup when explicitly needed:
+Deep setup:
 
 ```powershell
 C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_bootstrap_runtime.cmd --include-deep --prefetch-models
-C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_doctor.cmd --json
 ```
+
+## Output Policy
+
+- Cite local evidence by source title and locator, not by leaking full local file paths unless the user asks for paths.
+- For EndNote-backed evidence, prefer: `EndNote: <title>, locator: <locator>`.
+- For Zotero-backed evidence, prefer: `Zotero: <title>, locator: <locator>`.
+- For Obsidian or folder evidence, cite the note/document title or relative path plus locator.
+- If the same source appears repeatedly, define a short alias on first mention and reuse it.
+- Keep local evidence separate from model inference.
+
+## Trigger Examples
+
+- `use lkb to search passive linear optics`
+- `answer with lkb`
+- `search my local notes with lkb`
+- `用 lkb 检索 passive linear optics`
+- `基于 lkb 回答这个问题`
 
 ## Behavior Notes
 
 - `fast` and `balanced` must not load deep models.
 - `deep` requires prefetched local models under `gateway/.models/`.
 - Deep retrieval should fail explicitly when models or dependencies are missing.
+- Do not run multiple `--profile deep` searches concurrently.
