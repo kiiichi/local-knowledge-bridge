@@ -7,7 +7,7 @@
 ## Project Introduction / 项目介绍
 
 <p align="center">
-  <img src="assets/lkb-comic.png" alt="Four-panel comic: a cat imagines a luxury cat house, searches through messy files, uses lkb, and happily receives the right documents." width="900">
+  <img src="assets/lkb-comic.jpg" alt="Four-panel comic: a cat imagines a luxury cat house, searches through messy files, uses lkb, and happily receives the right documents." width="900">
 </p>
 
 **English**
