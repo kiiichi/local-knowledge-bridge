@@ -4,7 +4,8 @@ This directory contains the source-controlled gateway that is deployed to:
 
 - `C:\Users\<user>\.codex\Function\local_knowledge_bridge`
 
-If you are installing or using Local Knowledge Bridge for the first time, start with the repository root [README](../README.md).
+If you are installing, redeploying, or configuring Local Knowledge Bridge, start with the repository-level guided setup entry `scripts\lkb_setup.ps1`.
+This gateway directory contains the deployed maintenance wizard `lkb_wizard`, which setup opens for configuration.
 
 ## What Lives Here
 
@@ -13,11 +14,13 @@ If you are installing or using Local Knowledge Bridge for the first time, start 
 - shared source modules under `src/local_knowledge_bridge/`
 - runtime and dependency manifests
 - the default config template
+- the deployed maintenance wizard and lightweight terminal UI helpers
 - the evaluation case bundle used for local regression checks
 
 ## Main User-Facing Commands
 
 - `lkb_bootstrap_runtime`
+- `lkb_wizard`
 - `lkb_configure`
 - `lkb_index`
 - `lkb_refresh`

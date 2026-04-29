@@ -29,6 +29,7 @@ Available commands:
 - `lkb_index.cmd`
 - `lkb_refresh.cmd`
 - `lkb_service.cmd`
+- `lkb_wizard.cmd`
 - `lkb_configure.cmd`
 - `lkb_doctor.cmd`
 - `lkb_eval.cmd`
@@ -38,13 +39,15 @@ Use the `lkb_*` commands for this skill. Do not call legacy `kb_*` commands from
 
 ## Workflow
 
-1. For research or literature questions, call `lkb_ask.cmd` before relying on memory.
-2. Prefer `--profile fast` for the default answer flow.
-3. Use `--profile deep` only when the user explicitly asks for deep retrieval or when higher recall and reranking are worth the extra local runtime cost.
-4. If the user wants raw matches or diagnostics, use `lkb_search.cmd` or `lkb_report.cmd`.
-5. If the user asks to refresh first, use `lkb_refresh.cmd` or refresh once before the query sequence.
-6. Separate direct local evidence from your inference in the final answer.
-7. If no direct local evidence is found, say that explicitly instead of silently falling back.
+1. For repository install, redeploy, or configuration, start with `lkb_setup.cmd` from the source repo root.
+2. If setup action is configuration, it opens the deployed `lkb_wizard.cmd` for source path changes, route-weight presets, deep setup, or index rebuilds.
+3. For research or literature questions, call `lkb_ask.cmd` before relying on memory.
+4. Prefer `--profile fast` for the default answer flow.
+5. Use `--profile deep` only when the user explicitly asks for deep retrieval or when higher recall and reranking are worth the extra local runtime cost.
+6. If the user wants raw matches or diagnostics, use `lkb_search.cmd` or `lkb_report.cmd`.
+7. If the user asks to refresh first, use `lkb_refresh.cmd` or refresh once before the query sequence.
+8. Separate direct local evidence from your inference in the final answer.
+9. If no direct local evidence is found, say that explicitly instead of silently falling back.
 
 ## Multi-Search Policy
 
@@ -118,6 +121,13 @@ Refresh and status:
 C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_refresh.cmd
 C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_configure.cmd --show
 C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_index.cmd --status
+```
+
+Repository install or redeploy:
+
+```powershell
+cd <repo>\local-knowledge-bridge
+.\lkb_setup.cmd
 ```
 
 Runtime bootstrap:

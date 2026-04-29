@@ -34,7 +34,18 @@ python --version
 
 ## Install
 
-For a normal install:
+Always start with the guided setup wizard for first-time deployment, redeployment, or configuration:
+
+Double-click `lkb_setup.cmd` from the repo root, or run:
+
+```powershell
+cd <repo>\local-knowledge-bridge
+.\lkb_setup.cmd
+```
+
+The setup wizard first asks whether to configure the existing deployment or install/redeploy. Configuration opens the deployed maintenance wizard, where source paths, route-weight presets, deep settings, and index rebuilds are managed. Deployment can also install deep dependencies and prefetch the default models.
+
+For a normal non-interactive install:
 
 ```powershell
 cd <repo>\local-knowledge-bridge
@@ -51,7 +62,7 @@ cd <repo>\local-knowledge-bridge
 If PowerShell blocks script execution:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\install_windows.ps1 -Mode Copy -BootstrapRuntime
+powershell -ExecutionPolicy Bypass -File .\scripts\lkb_setup.ps1
 ```
 
 After install, set a PowerShell variable for the deployed gateway path. Examples below use `&` to run commands through that path:
@@ -61,6 +72,15 @@ $LKB = "$env:USERPROFILE\.codex\Function\local_knowledge_bridge"
 ```
 
 ## Configure Sources
+
+For guided source setup, route-weight presets, deep setup, and index rebuilds, start the repo setup wizard and choose `Configure existing deployment`:
+
+```powershell
+cd <repo>\local-knowledge-bridge
+.\lkb_setup.cmd
+```
+
+The setup wizard opens `$LKB\lkb_wizard.cmd` for configuration. Both setup and maintenance wizards edit only `lkb_config.json`; removing an entry from a wizard does not delete your real notes, libraries, attachments, or folders. Long-running setup, deep, and index commands show `[RUNNING]`, `[DONE]`, or `[FAILED]` status; deployed maintenance commands log details to `$LKB\.logs\wizard.log`.
 
 Configure Obsidian:
 
@@ -95,7 +115,7 @@ You can configure any supported source combination. Show the current configurati
 
 ## Build And Refresh The Index
 
-Build the local index the first time:
+The setup wizard opens the deployed maintenance wizard for index status, refresh, or full rebuild after confirmation. You can also build the local index manually:
 
 ```powershell
 & "$LKB\lkb_index.cmd" --force
@@ -194,7 +214,7 @@ When changing the PyTorch wheel in the embedded runtime, choose the build that m
 If PowerShell blocks scripts:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\install_windows.ps1 -Mode Copy -BootstrapRuntime
+powershell -ExecutionPolicy Bypass -File .\scripts\lkb_setup.ps1
 ```
 
 If a source path is missing or unreadable:
