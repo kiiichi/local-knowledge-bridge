@@ -109,13 +109,16 @@ C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_bootstrap_runtime.cmd
 
 ## Output Policy
 
-- Every answer grounded in LKB results must end with a data source list.
+- Every answer grounded in LKB results must end with a `DATA SOURCES` section.
+- Number every unique source in `DATA SOURCES` with a stable global bracket number, such as `[1]`, `[2]`, `[3]`. Do not restart numbering inside `Literature`, `Documents`, or other source-family subsections.
+- Use those same bracket numbers in the answer body. Any claim, analysis sentence, or model inference that depends on local evidence should cite the supporting source number inline, for example `... [1]` or `Inference from [1], [3]`.
+- Keep direct local evidence separate from model inference, but cite both sections with the same source numbers.
 - For literature-backed evidence, include the complete indexed title and DOI when available.
 - For non-literature documents, include the original source file name without translating it and the document path.
 - Include locators where available so the cited passage can be found again.
-- For EndNote-backed evidence, prefer: `EndNote: <title>, DOI: <doi or ->, locator: <locator>, path: <path>`.
-- For Zotero-backed evidence, prefer: `Zotero: <title>, DOI: <doi or ->, locator: <locator>, path: <path>`.
-- For Obsidian or folder evidence, cite the source file name, document path, and locator.
+- For EndNote-backed evidence, prefer: `[n] EndNote: <title>, DOI: <doi or ->, locator: <locator>, path: <path>`.
+- For Zotero-backed evidence, prefer: `[n] Zotero: <title>, DOI: <doi or ->, locator: <locator>, path: <path>`.
+- For Obsidian or folder evidence, prefer: `[n] <source family>: <file name>, locator: <locator>, path: <path>`.
 - If the same source appears repeatedly, define a short alias on first mention and reuse it.
 - Keep local evidence separate from model inference.
 

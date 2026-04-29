@@ -31,6 +31,25 @@ def _source_key(hit: dict[str, Any]) -> tuple[str, str, str, str]:
     )
 
 
+def _unique_sources(hits: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    seen: set[tuple[str, str, str, str]] = set()
+    sources: list[dict[str, Any]] = []
+    for hit in hits:
+        key = _source_key(hit)
+        if key in seen:
+            continue
+        seen.add(key)
+        sources.append(hit)
+    return sources
+
+
+def _source_number_map(hits: list[dict[str, Any]]) -> dict[tuple[str, str, str, str], int]:
+    return {
+        _source_key(hit): index
+        for index, hit in enumerate(_unique_sources(hits), start=1)
+    }
+
+
 def citation_from_hit(hit: dict[str, Any]) -> dict[str, Any]:
     return {
         "title": hit.get("title", ""),
@@ -49,19 +68,9 @@ def citation_from_hit(hit: dict[str, Any]) -> dict[str, Any]:
 
 
 def format_data_sources(hits: list[dict[str, Any]]) -> str:
-    seen: set[tuple[str, str, str, str]] = set()
-    literature: list[dict[str, Any]] = []
-    documents: list[dict[str, Any]] = []
-
-    for hit in hits:
-        key = _source_key(hit)
-        if key in seen:
-            continue
-        seen.add(key)
-        if _is_literature(hit):
-            literature.append(hit)
-        else:
-            documents.append(hit)
+    numbered_sources = list(enumerate(_unique_sources(hits), start=1))
+    literature = [(index, hit) for index, hit in numbered_sources if _is_literature(hit)]
+    documents = [(index, hit) for index, hit in numbered_sources if not _is_literature(hit)]
 
     lines = ["DATA SOURCES"]
     if not literature and not documents:
@@ -70,8 +79,8 @@ def format_data_sources(hits: list[dict[str, Any]]) -> str:
 
     if literature:
         lines.append("Literature")
-        for index, hit in enumerate(literature, start=1):
-            lines.append(f"{index}. Title: {hit.get('title') or '-'}")
+        for source_number, hit in literature:
+            lines.append(f"[{source_number}] Title: {hit.get('title') or '-'}")
             lines.append(f"   DOI: {hit.get('doi') or '-'}")
             lines.append(f"   Path: {_source_path(hit) or '-'}")
             if hit.get("locator"):
@@ -82,8 +91,8 @@ def format_data_sources(hits: list[dict[str, Any]]) -> str:
 
     if documents:
         lines.append("Documents")
-        for index, hit in enumerate(documents, start=1):
-            lines.append(f"{index}. File: {_source_file_name(hit) or '-'}")
+        for source_number, hit in documents:
+            lines.append(f"[{source_number}] File: {_source_file_name(hit) or '-'}")
             lines.append(f"   Path: {_source_path(hit) or '-'}")
             if hit.get("locator"):
                 lines.append(f"   Locator: {hit['locator']}")
@@ -152,19 +161,34 @@ def build_answer_payload(question: str, payload: dict[str, Any]) -> dict[str, An
     citations = []
     evidence_lines = []
     evidence_hits = hits[: min(len(hits), 5)]
+    source_numbers = _source_number_map(evidence_hits)
     for index, hit in enumerate(evidence_hits, start=1):
         locator = f" ({hit['locator']})" if hit.get("locator") else ""
         source_label = hit["source"]
         if hit.get("library_name"):
             source_label = f"{source_label}:{hit['library_name']}"
-        evidence_lines.append(f"{index}. {hit['title']}{locator} [{source_label}]")
+        source_number = source_numbers.get(_source_key(hit), index)
+        evidence_lines.append(f"{index}. [{source_number}] {hit['title']}{locator} [{source_label}]")
         evidence_lines.append(f"   {hit['snippet']}")
-        citations.append(citation_from_hit(hit))
+        citation = citation_from_hit(hit)
+        citation["source_number"] = source_number
+        citations.append(citation)
 
-    top_titles = "; ".join(dict.fromkeys(hit["title"] for hit in hits[:3] if hit.get("title")))
+    top_titles = []
+    seen_titles: set[str] = set()
+    for hit in hits[:3]:
+        title = str(hit.get("title") or "")
+        if not title or title in seen_titles:
+            continue
+        seen_titles.add(title)
+        source_number = source_numbers.get(_source_key(hit))
+        if source_number:
+            top_titles.append(f"{title} [{source_number}]")
+        else:
+            top_titles.append(title)
     model_inference = (
         "The strongest local evidence clusters around "
-        f"{top_titles or 'the retrieved materials'}. "
+        f"{'; '.join(top_titles) if top_titles else 'the retrieved materials'}. "
         "Use the evidence blocks below as the grounded answer surface."
     )
     answer_markdown = (

@@ -171,10 +171,12 @@ class RetrievalModeContractTests(unittest.TestCase):
 
         self.assertIn("DATA SOURCES", result["report_markdown"])
         self.assertIn("Literature", result["report_markdown"])
+        self.assertIn("[1] Title: Complete Literature Title", result["report_markdown"])
         self.assertIn("Title: Complete Literature Title", result["report_markdown"])
         self.assertIn("DOI: 10.1000/paper", result["report_markdown"])
         self.assertIn("Path: C:\\papers\\paper.pdf", result["report_markdown"])
         self.assertIn("Documents", result["report_markdown"])
+        self.assertIn("[2] File: chapter2.md", result["report_markdown"])
         self.assertIn("File: chapter2.md", result["report_markdown"])
         self.assertIn("Path: C:\\vault\\prompts\\thesis\\chapter2.md", result["report_markdown"])
 
@@ -203,7 +205,11 @@ class RetrievalModeContractTests(unittest.TestCase):
         self.assertEqual(result["citations"][0]["doi"], "10.1000/paper")
         self.assertEqual(result["citations"][0]["full_path"], "C:\\papers\\paper.pdf")
         self.assertEqual(result["citations"][0]["file_name"], "paper.pdf")
+        self.assertEqual(result["citations"][0]["source_number"], 1)
+        self.assertIn("1. [1] Complete Literature Title", result["answer_markdown"])
+        self.assertIn("Complete Literature Title [1]", result["answer_markdown"])
         self.assertIn("DATA SOURCES", result["answer_markdown"])
+        self.assertIn("[1] Title: Complete Literature Title", result["answer_markdown"])
         self.assertIn("DOI: 10.1000/paper", result["answer_markdown"])
 
     def test_search_results_text_appends_data_sources(self) -> None:
@@ -238,6 +244,7 @@ class RetrievalModeContractTests(unittest.TestCase):
 
         self.assertIn("DATA SOURCES", text)
         self.assertIn("Documents", text)
+        self.assertIn("[1] File: chapter2.md", text)
         self.assertIn("File: chapter2.md", text)
         self.assertIn("Path: C:\\vault\\prompts\\thesis\\chapter2.md", text)
 
