@@ -8,7 +8,7 @@
 
 **English**
 
-This project installs the `Local Knowledge Bridge` Codex skill and supporting Windows gateway commands on your machine. In everyday use, just ask Codex in natural language and explicitly invoke the `Local Knowledge Bridge` skill, or use `lkb` as a short prompt prefix, so Codex knows to search your local sources first.
+This project installs the `Local Knowledge Bridge` Codex skill and supporting Windows gateway commands on your machine. In everyday use, just ask Codex in natural language and invoke the skill as `$Local Knowledge Bridge`, mention `Local Knowledge Bridge`, or include `lkb` anywhere in your request so Codex knows to search your local sources first.
 
 After configuration, you can connect Obsidian, EndNote, Zotero, and regular folders into one local knowledge bridge. The command-line tools remain available for setup, diagnostics, scripting, and development, while the intended user experience is natural-language access inside Codex.
 
@@ -16,7 +16,7 @@ All indexes, logs, models, runtime files, and configuration stay on your machine
 
 **中文**
 
-这个项目会在你的 Windows 机器上安装 `Local Knowledge Bridge` Codex skill 和配套的 Windows 网关命令。日常使用时，只要用自然语言向 Codex 提问，并显式写出 `Local Knowledge Bridge` skill，或者用 `lkb` 作为简短前缀，Codex 就会知道应当先检索你的本地资料。
+这个项目会在你的 Windows 机器上安装 `Local Knowledge Bridge` Codex skill 和配套的 Windows 网关命令。日常使用时，只要用自然语言向 Codex 提问，并使用 `$Local Knowledge Bridge` 调用 skill，写出 `Local Knowledge Bridge`，或者在请求中的任意位置加入 `lkb`，Codex 就会知道应当先检索你的本地资料。
 
 配置完成后，你可以把 Obsidian、EndNote、Zotero 和普通文件夹接入同一个本地知识桥。命令行工具仍然可用于安装、诊断、脚本化和开发；面向用户的主要体验是在 Codex 中用自然语言访问本地知识。
 
@@ -35,7 +35,7 @@ All indexes, logs, models, runtime files, and configuration stay on your machine
 
 | Method / 支持方式 | Link / 链接 |
 | --- | --- |
-| WeChat / 微信 | [![WeChat](https://img.shields.io/badge/WeChat-Kiiichi-07C160?logo=wechat&logoColor=white)](sponsor-wechat.png?raw=1) |
+| WeChat / 微信 | [![WeChat](https://img.shields.io/badge/WeChat-Kiiichi-07C160?logo=wechat&logoColor=white)](https://github.com/kiiichi/local-knowledge-bridge/raw/refs/heads/main/sponsor-wechat.png) |
 | PayPal | [![PayPal](https://img.shields.io/badge/PayPal-Kiiichi-00457C?logo=paypal&logoColor=white)](https://www.paypal.com/paypalme/kiiichi) |
 
 **English**
@@ -105,15 +105,15 @@ Configuration opens the deployed maintenance wizard. Use it to add or edit Obsid
 
 ### Use It In Codex / 在 Codex 中使用
 
-After setup, use natural language in Codex. Explicitly mention `Local Knowledge Bridge`, or start with `lkb`, when you want Codex to search your configured local sources first.
+After setup, use natural language in Codex. Invoke `$Local Knowledge Bridge`, mention `Local Knowledge Bridge`, or include `lkb` anywhere in the prompt when you want Codex to search your configured local sources first.
 
-完成设置后，请在 Codex 中用自然语言使用它。当你希望 Codex 优先检索已配置的本地资料时，请显式写出 `Local Knowledge Bridge`，或用 `lkb` 作为开头简写。
+完成设置后，请在 Codex 中用自然语言使用它。当你希望 Codex 优先检索已配置的本地资料时，可以使用 `$Local Knowledge Bridge`，显式写出 `Local Knowledge Bridge`，或者在提示词中的任意位置加入 `lkb`。
 
 | English example | 中文示例 |
 | --- | --- |
-| `Use Local Knowledge Bridge to find my notes on transformer model compression and summarize the main methods.` | `使用 Local Knowledge Bridge 查找我关于 Transformer 模型压缩的笔记，并总结主要方法。` |
-| `lkb: based on my Zotero and Obsidian sources, what do I have on solid-state battery electrolyte materials?` | `lkb：基于我的 Zotero 和 Obsidian 资料，我关于固态电池电解质材料有哪些内容？` |
-| `Use Local Knowledge Bridge to compare my local notes on CRISPR off-target detection methods. Cite the sources you used.` | `使用 Local Knowledge Bridge 对比我本地关于 CRISPR 脱靶检测方法的笔记，并说明使用了哪些来源。` |
+| `$Local Knowledge Bridge: find my notes on transformer model compression and summarize the main methods.` | `$Local Knowledge Bridge：查找我关于 Transformer 模型压缩的笔记，并总结主要方法。` |
+| `Based on my Zotero and Obsidian sources, use lkb to find what I have on solid-state battery electrolyte materials.` | `基于我的 Zotero 和 Obsidian 资料，用 lkb 查找我关于固态电池电解质材料有哪些内容。` |
+| `Compare my local notes on CRISPR off-target detection methods with Local Knowledge Bridge, and cite the sources you used.` | `用 Local Knowledge Bridge 对比我本地关于 CRISPR 脱靶检测方法的笔记，并说明使用了哪些来源。` |
 | `lkb, make a short report from my local papers about passive linear optics.` | `lkb，基于我的本地论文整理一份关于被动线性光学的简短报告。` |
 
 Run diagnostics from PowerShell / 在 PowerShell 中运行诊断:
