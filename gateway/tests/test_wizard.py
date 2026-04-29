@@ -186,6 +186,7 @@ class WizardDeepAndActionTests(unittest.TestCase):
                 self.assertTrue(app.run_deep_setup())
 
         command = run.call_args.args[0]
+        self.assertTrue(run.call_args.kwargs["stream_output"])
         self.assertIn("--include-deep", command)
         self.assertIn("--prefetch-models", command)
 

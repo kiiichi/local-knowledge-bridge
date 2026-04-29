@@ -102,8 +102,11 @@ class BootstrapRuntimeTests(unittest.TestCase):
                 bootstrap_runtime._prefetch_models()
 
         command = run.call_args.args[0]
+        kwargs = run.call_args.kwargs
         self.assertEqual(command[0], str(embedded_python))
         self.assertIn("sys.path.insert(0", command[2])
+        self.assertNotIn("stdout", kwargs)
+        self.assertNotIn("stderr", kwargs)
 
 
 if __name__ == "__main__":

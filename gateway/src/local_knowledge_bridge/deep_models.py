@@ -166,18 +166,23 @@ def prefetch_models(config: dict) -> dict[str, Any]:
         )
 
     for model_id in [embedding_model_id(config), reranker_model_id(config)]:
+        target_path = model_storage_path(model_id)
+        print(f"Prefetching deep model: {model_id}", flush=True)
+        print(f"  target: {target_path}", flush=True)
         try:
             huggingface_hub.snapshot_download(
                 repo_id=model_id,
-                local_dir=str(model_storage_path(model_id)),
+                local_dir=str(target_path),
             )
         except Exception as exc:  # pragma: no cover - exercised in live bootstrap flows
             raise SystemExit(
-                f"Failed to prefetch {model_id} into {model_storage_path(model_id)}. "
+                f"Failed to prefetch {model_id} into {target_path}. "
                 f"Check network access to Hugging Face and retry. Details: {exc}"
             ) from exc
+        print(f"Finished deep model: {model_id}", flush=True)
 
     try:
+        print("Verifying deep models can be loaded...", flush=True)
         load_embedding_model(config)
         load_reranker_model(config)
     except Exception as exc:  # pragma: no cover - exercised in live bootstrap flows

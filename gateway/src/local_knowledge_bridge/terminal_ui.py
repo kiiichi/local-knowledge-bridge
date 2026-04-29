@@ -110,6 +110,7 @@ def run_logged_command(
     cwd: str | Path | None = None,
     log_path: Path | None = None,
     ui: TerminalUI | None = None,
+    stream_output: bool = False,
 ) -> CommandResult:
     ui = ui or TerminalUI()
     log_path = log_path or wizard_log_path()
@@ -119,16 +120,26 @@ def run_logged_command(
         log.write("\n")
         log.write(f"=== {time.strftime('%Y-%m-%d %H:%M:%S')} {label} ===\n")
         log.write(f"$ {_command_line(args)}\n")
+        if stream_output:
+            log.write("[output streamed to console]\n")
         log.flush()
         try:
-            completed = subprocess.run(
-                args,
-                cwd=str(cwd) if cwd is not None else None,
-                stdout=log,
-                stderr=subprocess.STDOUT,
-                text=True,
-                check=False,
-            )
+            if stream_output:
+                completed = subprocess.run(
+                    args,
+                    cwd=str(cwd) if cwd is not None else None,
+                    text=True,
+                    check=False,
+                )
+            else:
+                completed = subprocess.run(
+                    args,
+                    cwd=str(cwd) if cwd is not None else None,
+                    stdout=log,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    check=False,
+                )
             returncode = int(completed.returncode)
         except Exception as exc:
             elapsed = time.monotonic() - started_at

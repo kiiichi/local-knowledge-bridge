@@ -29,6 +29,16 @@ def _run(args: list[str]) -> None:
     subprocess.run(args, check=True)
 
 
+def _run_streamed(args: list[str], *, cwd: Path | None = None, failure_message: str) -> None:
+    completed = subprocess.run(
+        args,
+        check=False,
+        cwd=str(cwd) if cwd is not None else None,
+    )
+    if completed.returncode != 0:
+        raise SystemExit(f"{failure_message} Exit code: {completed.returncode}")
+
+
 def _is_usable_python(path: Path) -> bool:
     if not path.exists():
         return False
@@ -103,9 +113,11 @@ def _create_runtime(force_recreate: bool) -> None:
 
 def _install_requirements(include_deep: bool) -> None:
     python = str(runtime_python())
+    print("Installing/updating base runtime dependencies...", flush=True)
     _run([python, "-m", "pip", "install", "--upgrade", "pip", "wheel"])
     _run([python, "-m", "pip", "install", "-r", str(requirements_runtime())])
     if include_deep and requirements_deep().exists():
+        print("Installing deep retrieval dependencies...", flush=True)
         _run([python, "-m", "pip", "install", "-r", str(requirements_deep())])
 
 
@@ -117,6 +129,7 @@ def _update_config() -> None:
 
 
 def _prefetch_models() -> None:
+    print("Prefetching deep models. Hugging Face will show file progress and download speed below.", flush=True)
     python = str(runtime_python())
     src_root = gateway_root() / "src"
     command = [
@@ -128,22 +141,16 @@ def _prefetch_models() -> None:
             "from local_knowledge_bridge.config import load_config; "
             "from local_knowledge_bridge.deep_models import prefetch_models; "
             "import json; "
-            "print(json.dumps(prefetch_models(load_config()), ensure_ascii=True))"
+            "status = prefetch_models(load_config()); "
+            "print('Deep model prefetch status:'); "
+            "print(json.dumps(status, ensure_ascii=True, indent=2))"
         ),
     ]
-    completed = subprocess.run(
+    _run_streamed(
         command,
-        check=False,
-        cwd=str(gateway_root()),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
+        cwd=gateway_root(),
+        failure_message="Deep model prefetch failed.",
     )
-    if completed.returncode != 0:
-        message = completed.stderr.strip() or completed.stdout.strip() or "Deep model prefetch failed."
-        raise SystemExit(message)
-    if completed.stdout.strip():
-        print(completed.stdout.strip())
 
 
 def main() -> int:

@@ -605,7 +605,13 @@ class Wizard:
             "--include-deep",
             "--prefetch-models",
         ]
-        result = run_logged_command(command, label="Deep dependency install and model prefetch", cwd=gateway_root(), ui=self.ui)
+        result = run_logged_command(
+            command,
+            label="Deep dependency install and model prefetch",
+            cwd=gateway_root(),
+            ui=self.ui,
+            stream_output=True,
+        )
         return result.ok
 
     def run_index(self, *, force: bool) -> bool:
