@@ -1,7 +1,9 @@
 {
   "obsidian_vault": "",
+  "zotero_sqlite": "",
   "endnote_library": "",
   "endnote_libraries": [],
+  "folder_libraries": [],
   "exclude_dirs": [
     ".obsidian",
     ".smart-connections",
@@ -14,7 +16,9 @@
     "db_path": "",
     "auto_refresh": false,
     "obsidian_chunk_chars": 1400,
+    "zotero_chunk_chars": 1800,
     "endnote_chunk_chars": 1800,
+    "folder_chunk_chars": 1600,
     "stale_seconds": 900,
     "obsidian_stale_note_threshold": 3,
     "obsidian_stale_size_bytes": 32768,
@@ -22,7 +26,24 @@
     "endnote_stale_db_size_bytes": 65536,
     "endnote_stale_pdf_count_threshold": 5,
     "endnote_stale_pdf_mtime_grace_seconds": 604800,
+    "zotero_stale_sqlite_size_bytes": 65536,
+    "zotero_stale_cache_count_threshold": 5,
+    "zotero_stale_cache_mtime_grace_seconds": 604800,
+    "folder_stale_file_threshold": 3,
+    "folder_stale_size_bytes": 65536,
+    "folder_stale_mtime_grace_seconds": 604800,
     "stale_warning_after_days": 7
+  },
+  "folder": {
+    "include_extensions": [
+      ".md",
+      ".markdown",
+      ".txt",
+      ".pdf",
+      ".docx",
+      ".pptx",
+      ".xlsx"
+    ]
   },
   "models": {
     "embedding": "BAAI/bge-m3",
@@ -59,7 +80,14 @@
       "obsidian_chunks": 1.4,
       "endnote_docs": 1.1,
       "endnote_attachments": 0.95,
-      "endnote_fulltext": 1.0
+      "endnote_fulltext": 1.0,
+      "zotero_docs": 1.1,
+      "zotero_notes": 1.2,
+      "zotero_annotations": 1.25,
+      "zotero_fulltext": 1.0,
+      "zotero_attachments": 0.95,
+      "folder_docs": 0.85,
+      "folder_chunks": 1.0
     },
     "scoring": {
       "title_hit_cap": 3,

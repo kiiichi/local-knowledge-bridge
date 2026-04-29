@@ -5,11 +5,19 @@ import sqlite3
 import time
 from pathlib import Path
 
-from .config import enabled_endnote_libraries, profile_settings, route_weights, scoring_settings, selected_profile
+from .config import (
+    enabled_endnote_libraries,
+    enabled_folder_libraries,
+    profile_settings,
+    route_weights,
+    scoring_settings,
+    selected_profile,
+)
 from .constants import SUPPORTED_TARGETS
 from .db import connect_index, get_meta, set_meta, table_exists
 from .deep_ranking import apply_deep_ranking
 from .endnote import index_endnote
+from .folder import index_folder
 from .normalize import make_snippet, parse_year_filters, year_matches_filter
 from .obsidian import index_obsidian
 from .ranking import fuse_hits
@@ -17,6 +25,7 @@ from .scoring import QueryContext, build_query_context, score_document
 from .schema import clear_index, ensure_schema
 from .service_models import SearchHit, SearchRequest, normalize_mode
 from .source_guard import ensure_gateway_output_path
+from .zotero import index_zotero
 
 
 def _index_db_path(config: dict) -> Path:
@@ -31,6 +40,8 @@ def index_status(config: dict) -> dict:
         "configured": {
             "obsidian": bool(config.get("obsidian_vault")),
             "endnote": bool(enabled_endnote_libraries(config)),
+            "zotero": bool(config.get("zotero_sqlite")),
+            "folder": bool(enabled_folder_libraries(config)),
         },
         "counts": {
             "obsidian_notes": 0,
@@ -38,6 +49,10 @@ def index_status(config: dict) -> dict:
             "endnote_docs": 0,
             "endnote_attachments": 0,
             "endnote_fulltext": 0,
+            "zotero_docs": 0,
+            "zotero_evidence": 0,
+            "folder_docs": 0,
+            "folder_chunks": 0,
         },
         "meta": {},
     }
@@ -89,12 +104,20 @@ def build_index(config: dict, force: bool = False, folder_prefix: str | None = N
         set_meta(connection, "last_build_obsidian_summary", obsidian_summary)
         connection.commit()
         endnote_summary = index_endnote(connection, config)
+        set_meta(connection, "last_build_stage", "zotero")
+        connection.commit()
+        zotero_summary = index_zotero(connection, config)
+        set_meta(connection, "last_build_stage", "folder")
+        connection.commit()
+        folder_summary = index_folder(connection, config)
 
         summary = {
             "db_path": str(db_path),
             "force": bool(force),
             "obsidian": obsidian_summary,
             "endnote": endnote_summary,
+            "zotero": zotero_summary,
+            "folder": folder_summary,
             "started_at": started_at,
             "completed_at": time.time(),
         }
@@ -400,6 +423,148 @@ def search_local(config: dict, request: SearchRequest) -> dict:
                 scoring=scoring_config,
                 route="endnote_fulltext",
                 source="endnote",
+                folder=request.folder,
+                years=year_filters,
+                endnote_library=request.endnote_library,
+            )
+
+        if target in {"both", "zotero"}:
+            route_hits["zotero_docs"] = _query_route(
+                connection,
+                sql="""
+                    SELECT
+                        d.doc_key AS hit_key,
+                        d.canonical_key,
+                        d.title,
+                        d.item_key AS path,
+                        'metadata' AS locator,
+                        '' AS full_path,
+                        d.content_text,
+                        d.year,
+                        d.doi,
+                        '' AS library_id,
+                        '' AS library_name,
+                        bm25(zotero_doc_fts) AS bm25_score
+                    FROM zotero_doc_fts
+                    JOIN zotero_docs d ON d.doc_key = zotero_doc_fts.doc_key
+                    WHERE zotero_doc_fts MATCH ?
+                    ORDER BY bm25(zotero_doc_fts)
+                    LIMIT ?
+                """,
+                fts_query=query_context.fts_query,
+                query_context=query_context,
+                candidate_limit=candidate_limit,
+                mode=effective_mode,
+                scoring=scoring_config,
+                route="zotero_docs",
+                source="zotero",
+                folder=request.folder,
+                years=year_filters,
+                endnote_library=request.endnote_library,
+            )
+            for route_name, layer_name in [
+                ("zotero_notes", "note"),
+                ("zotero_annotations", "annotation"),
+                ("zotero_fulltext", "fulltext"),
+                ("zotero_attachments", "attachment"),
+            ]:
+                route_hits[route_name] = _query_route(
+                    connection,
+                    sql=f"""
+                        SELECT
+                            e.evidence_key AS hit_key,
+                            e.canonical_key,
+                            e.title,
+                            COALESCE(NULLIF(e.full_path, ''), e.item_key) AS path,
+                            e.locator,
+                            e.full_path,
+                            TRIM(e.content_text || ' ' || e.comment_text) AS content_text,
+                            e.year,
+                            e.doi,
+                            '' AS library_id,
+                            '' AS library_name,
+                            bm25(zotero_evidence_fts) AS bm25_score
+                        FROM zotero_evidence_fts
+                        JOIN zotero_evidence e ON e.evidence_key = zotero_evidence_fts.evidence_key
+                        WHERE zotero_evidence_fts MATCH ? AND e.layer = '{layer_name}'
+                        ORDER BY bm25(zotero_evidence_fts)
+                        LIMIT ?
+                    """,
+                    fts_query=query_context.fts_query,
+                    query_context=query_context,
+                    candidate_limit=candidate_limit,
+                    mode=effective_mode,
+                    scoring=scoring_config,
+                    route=route_name,
+                    source="zotero",
+                    folder=request.folder,
+                    years=year_filters,
+                    endnote_library=request.endnote_library,
+                )
+
+        if target in {"both", "folder"}:
+            route_hits["folder_docs"] = _query_route(
+                connection,
+                sql="""
+                    SELECT
+                        d.doc_key AS hit_key,
+                        d.canonical_key,
+                        d.title,
+                        d.rel_path AS path,
+                        d.parser_type AS locator,
+                        d.full_path,
+                        d.body_snippet AS content_text,
+                        d.year,
+                        d.doi,
+                        d.folder_id AS library_id,
+                        d.folder_name AS library_name,
+                        bm25(folder_doc_fts) AS bm25_score
+                    FROM folder_doc_fts
+                    JOIN folder_docs d ON d.doc_key = folder_doc_fts.doc_key
+                    WHERE folder_doc_fts MATCH ?
+                    ORDER BY bm25(folder_doc_fts)
+                    LIMIT ?
+                """,
+                fts_query=query_context.fts_query,
+                query_context=query_context,
+                candidate_limit=candidate_limit,
+                mode=effective_mode,
+                scoring=scoring_config,
+                route="folder_docs",
+                source="folder",
+                folder=request.folder,
+                years=year_filters,
+                endnote_library=request.endnote_library,
+            )
+            route_hits["folder_chunks"] = _query_route(
+                connection,
+                sql="""
+                    SELECT
+                        c.chunk_key AS hit_key,
+                        c.canonical_key,
+                        c.title,
+                        c.rel_path AS path,
+                        c.locator,
+                        c.full_path,
+                        c.content_text,
+                        c.year,
+                        c.doi,
+                        c.folder_id AS library_id,
+                        c.folder_name AS library_name,
+                        bm25(folder_chunk_fts) AS bm25_score
+                    FROM folder_chunk_fts
+                    JOIN folder_chunks c ON c.chunk_key = folder_chunk_fts.chunk_key
+                    WHERE folder_chunk_fts MATCH ?
+                    ORDER BY bm25(folder_chunk_fts)
+                    LIMIT ?
+                """,
+                fts_query=query_context.fts_query,
+                query_context=query_context,
+                candidate_limit=candidate_limit,
+                mode=effective_mode,
+                scoring=scoring_config,
+                route="folder_chunks",
+                source="folder",
                 folder=request.folder,
                 years=year_filters,
                 endnote_library=request.endnote_library,

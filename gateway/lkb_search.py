@@ -16,7 +16,7 @@ from local_knowledge_bridge.service_models import SearchRequest
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Search the Local Knowledge Bridge index.")
-    parser.add_argument("target", choices=["both", "obsidian", "endnote"])
+    parser.add_argument("target", choices=["both", "obsidian", "endnote", "zotero", "folder"])
     parser.add_argument("query")
     parser.add_argument("--folder")
     parser.add_argument("--endnote-library")

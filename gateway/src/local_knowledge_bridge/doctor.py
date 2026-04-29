@@ -3,11 +3,17 @@ from __future__ import annotations
 import time
 from pathlib import Path
 
-from .config import enabled_endnote_libraries, load_config
+from .config import enabled_endnote_libraries, enabled_folder_libraries, load_config
 from .deep_models import inspect_deep_status
 from .paths import version_path
 from .retrieval import index_status
-from .source_guard import endnote_data_dir, resolve_endnote_components, validate_obsidian_vault
+from .source_guard import (
+    endnote_data_dir,
+    resolve_endnote_components,
+    validate_folder_library,
+    validate_obsidian_vault,
+    validate_zotero_sqlite,
+)
 from .versioning import get_version_status, load_app_version
 
 
@@ -84,10 +90,14 @@ def _endnote_source_status(config: dict) -> tuple[dict, dict]:
         elif layout == "legacy":
             compatible = True
             suggest_update = True
-            details.append(f"{library_name}: legacy EndNote layout detected; metadata support is limited and PDF-first fallback may be used.")
+            details.append(
+                f"{library_name}: legacy EndNote layout detected; metadata support is limited and attachment fallback may be used."
+            )
         else:
             suggest_update = True
-            details.append(f"{library_name}: EndNote data directory is readable but no database was found; PDF-only indexing will be used if PDFs exist.")
+            details.append(
+                f"{library_name}: EndNote data directory is readable but no database was found; attachment-only indexing will be used if readable attachments exist."
+            )
 
     return (
         {
@@ -102,13 +112,74 @@ def _endnote_source_status(config: dict) -> tuple[dict, dict]:
     )
 
 
+def _zotero_source_status(config: dict) -> dict:
+    zotero_path = str(config.get("zotero_sqlite", "") or "").strip()
+    if not zotero_path:
+        return {
+            "configured": False,
+            "available": False,
+            "compatible": False,
+            "suggest_update": False,
+            "detail": "Zotero sqlite is not configured.",
+        }
+    try:
+        validate_zotero_sqlite(zotero_path)
+    except SystemExit as exc:
+        return {
+            "configured": True,
+            "available": False,
+            "compatible": False,
+            "suggest_update": False,
+            "detail": _safe_detail_message(exc),
+        }
+    return {
+        "configured": True,
+        "available": True,
+        "compatible": True,
+        "suggest_update": False,
+        "detail": "Zotero sqlite is configured and readable.",
+    }
+
+
+def _folder_source_status(config: dict) -> dict:
+    libraries = enabled_folder_libraries(config)
+    if not libraries:
+        return {
+            "configured": False,
+            "available": False,
+            "compatible": False,
+            "suggest_update": False,
+            "detail": "Folder knowledge source is not configured.",
+        }
+    details: list[str] = []
+    available = True
+    for item in libraries:
+        try:
+            validate_folder_library(item["path"])
+            details.append(f"{item['name']}: folder is configured and readable.")
+        except SystemExit as exc:
+            available = False
+            details.append(f"{item['name']}: {_safe_detail_message(exc)}")
+    return {
+        "configured": True,
+        "available": available,
+        "compatible": available,
+        "suggest_update": False,
+        "detail": " | ".join(details),
+    }
+
+
 def get_source_compatibility_status(config: dict, force_refresh: bool = False) -> dict:
     del force_refresh
     obsidian_status = _obsidian_source_status(config)
     endnote_status, _ = _endnote_source_status(config)
+    zotero_status = _zotero_source_status(config)
+    folder_status = _folder_source_status(config)
     return {
         "obsidian": obsidian_status,
         "endnote": endnote_status,
+        "zotero": zotero_status,
+        "folder": folder_status,
     }
 
 
@@ -176,6 +247,59 @@ def _endnote_change_status(config: dict, build_timestamp: float | None) -> tuple
     return False, False, 0
 
 
+def _zotero_change_status(config: dict, build_timestamp: float | None) -> tuple[bool, bool, int]:
+    zotero_path = str(config.get("zotero_sqlite", "") or "").strip()
+    if not zotero_path:
+        return False, False, 0
+    try:
+        sqlite_path = validate_zotero_sqlite(zotero_path)
+    except SystemExit:
+        return True, False, 0
+
+    changed_files = 0
+    db_changed = build_timestamp is None or sqlite_path.stat().st_mtime > build_timestamp
+    storage_root = sqlite_path.parent / "storage"
+    if storage_root.exists():
+        if build_timestamp is None:
+            changed_files = sum(1 for path in storage_root.rglob("*") if path.is_file())
+        else:
+            changed_files = sum(1 for path in storage_root.rglob("*") if path.is_file() and path.stat().st_mtime > build_timestamp)
+
+    if build_timestamp is None:
+        return True, False, changed_files
+    threshold = int(config.get("index", {}).get("zotero_stale_cache_count_threshold", 5))
+    if db_changed or changed_files >= threshold:
+        return True, False, changed_files
+    if changed_files > 0:
+        return False, True, changed_files
+    return False, False, 0
+
+
+def _folder_change_status(config: dict, build_timestamp: float | None) -> tuple[bool, bool, int]:
+    libraries = enabled_folder_libraries(config)
+    if not libraries:
+        return False, False, 0
+    changed_files = 0
+    for item in libraries:
+        try:
+            root = validate_folder_library(item["path"])
+        except SystemExit:
+            return True, False, changed_files
+        if build_timestamp is None:
+            changed_files += sum(1 for path in root.rglob("*") if path.is_file())
+        else:
+            changed_files += sum(1 for path in root.rglob("*") if path.is_file() and path.stat().st_mtime > build_timestamp)
+
+    if build_timestamp is None:
+        return True, False, changed_files
+    threshold = int(config.get("index", {}).get("folder_stale_file_threshold", 3))
+    if changed_files >= threshold:
+        return True, False, changed_files
+    if changed_files > 0:
+        return False, True, changed_files
+    return False, False, 0
+
+
 def _normalized_index_status(config: dict, source_status: dict) -> dict:
     status = index_status(config)
     meta = status.get("meta", {})
@@ -191,6 +315,8 @@ def _normalized_index_status(config: dict, source_status: dict) -> dict:
 
     obsidian_stale, obsidian_minor_change, obsidian_changed_notes = _obsidian_change_status(config, completed_at)
     endnote_stale, endnote_minor_change, endnote_changed_pdfs = _endnote_change_status(config, completed_at)
+    zotero_stale, zotero_minor_change, zotero_changed_files = _zotero_change_status(config, completed_at)
+    folder_stale, folder_minor_change, folder_changed_files = _folder_change_status(config, completed_at)
 
     warning_after_days = float(config.get("index", {}).get("stale_warning_after_days", 7))
     if stale_age_days is not None and stale_age_days >= warning_after_days:
@@ -198,18 +324,30 @@ def _normalized_index_status(config: dict, source_status: dict) -> dict:
             obsidian_stale = True
         if source_status.get("endnote", {}).get("configured"):
             endnote_stale = True
+        if source_status.get("zotero", {}).get("configured"):
+            zotero_stale = True
+        if source_status.get("folder", {}).get("configured"):
+            folder_stale = True
 
     return {
         **status,
         "obsidian_available": bool(source_status.get("obsidian", {}).get("available")),
         "endnote_available": bool(source_status.get("endnote", {}).get("available")),
+        "zotero_available": bool(source_status.get("zotero", {}).get("available")),
+        "folder_available": bool(source_status.get("folder", {}).get("available")),
         "obsidian_stale": bool(obsidian_stale),
         "endnote_stale": bool(endnote_stale),
+        "zotero_stale": bool(zotero_stale),
+        "folder_stale": bool(folder_stale),
         "obsidian_minor_change": bool(obsidian_minor_change),
         "endnote_minor_change": bool(endnote_minor_change),
+        "zotero_minor_change": bool(zotero_minor_change),
+        "folder_minor_change": bool(folder_minor_change),
         "stale_age_days": stale_age_days,
         "obsidian_changed_notes": obsidian_changed_notes,
         "endnote_changed_pdfs": endnote_changed_pdfs,
+        "zotero_changed_files": zotero_changed_files,
+        "folder_changed_files": folder_changed_files,
     }
 
 
@@ -223,11 +361,13 @@ def diagnose_gateway(config: dict | None = None, *, force_refresh: bool = False)
     configured_sources = {
         "obsidian": bool(str(config.get("obsidian_vault", "") or "").strip()),
         "endnote": len(enabled_endnote_libraries(config)) > 0,
+        "zotero": bool(str(config.get("zotero_sqlite", "") or "").strip()),
+        "folder": len(enabled_folder_libraries(config)) > 0,
     }
     usable_sources = [
         name
         for name, item in source_status.items()
-        if name in {"obsidian", "endnote"}
+        if name in {"obsidian", "endnote", "zotero", "folder"}
         and isinstance(item, dict)
         and item.get("configured")
         and item.get("available")
@@ -274,7 +414,7 @@ def render_doctor(report: dict, service_health: dict | None = None) -> str:
 
     lines.append("SOURCES:")
     source_status = report.get("source_status") or {}
-    for key in ("obsidian", "endnote"):
+    for key in ("obsidian", "endnote", "zotero", "folder"):
         item = source_status.get(key) or {}
         lines.append(
             f"- {key}: configured={bool(item.get('configured'))}"
@@ -302,10 +442,16 @@ def render_doctor(report: dict, service_health: dict | None = None) -> str:
         "exists",
         "obsidian_available",
         "endnote_available",
+        "zotero_available",
+        "folder_available",
         "obsidian_stale",
         "endnote_stale",
+        "zotero_stale",
+        "folder_stale",
         "obsidian_minor_change",
         "endnote_minor_change",
+        "zotero_minor_change",
+        "folder_minor_change",
     ):
         if key in index_info:
             lines.append(f"- {key}: {index_info.get(key)}")
@@ -363,5 +509,20 @@ def doctor_report(config: dict, service_health: dict | None = None, *, force_ref
             "enabled": item.get("enabled", True),
         }
         for item in enabled_endnote_libraries(config)
+    ]
+    report["zotero"] = {
+        "configured": report["source_status"]["zotero"]["configured"],
+        "path": str(config.get("zotero_sqlite", "") or ""),
+        "exists": report["source_status"]["zotero"]["available"],
+    }
+    report["folder"] = [
+        {
+            "id": item["id"],
+            "name": item["name"],
+            "path": item["path"],
+            "exists": Path(item["path"]).exists(),
+            "enabled": item.get("enabled", True),
+        }
+        for item in enabled_folder_libraries(config)
     ]
     return report

@@ -70,10 +70,50 @@ def _normalize_endnote_libraries(config: dict[str, Any]) -> list[dict[str, Any]]
     return libraries
 
 
+def _normalize_library_id(name: str, index: int, prefix: str) -> str:
+    slug = "".join(ch.lower() if ch.isalnum() else "-" for ch in name).strip("-")
+    slug = "-".join(part for part in slug.split("-") if part)
+    return slug or f"{prefix}-{index}"
+
+
+def _normalize_folder_libraries(config: dict[str, Any]) -> list[dict[str, Any]]:
+    libraries: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for idx, item in enumerate(config.get("folder_libraries", []), start=1):
+        path = _normalize_path(item.get("path"))
+        if not path or path in seen:
+            continue
+        seen.add(path)
+        name = item.get("name") or Path(path).name or f"Folder {idx}"
+        libraries.append(
+            {
+                "id": item.get("id") or _normalize_library_id(name, idx, "folder"),
+                "name": name,
+                "path": path,
+                "enabled": bool(item.get("enabled", True)),
+            }
+        )
+    single_path = _normalize_path(config.get("folder_library"))
+    if single_path and single_path not in seen:
+        idx = len(libraries) + 1
+        name = Path(single_path).name or f"Folder {idx}"
+        libraries.append(
+            {
+                "id": _normalize_library_id(name, idx, "folder"),
+                "name": name,
+                "path": single_path,
+                "enabled": True,
+            }
+        )
+    return libraries
+
+
 def _normalize_config(config: dict[str, Any]) -> dict[str, Any]:
     normalized = _merge(load_template_base(), config)
     normalized["obsidian_vault"] = _normalize_path(normalized.get("obsidian_vault"))
+    normalized["zotero_sqlite"] = _normalize_path(normalized.get("zotero_sqlite"))
     normalized["endnote_libraries"] = _normalize_endnote_libraries(normalized)
+    normalized["folder_libraries"] = _normalize_folder_libraries(normalized)
 
     enabled_paths = [item["path"] for item in normalized["endnote_libraries"] if item.get("enabled")]
     normalized["endnote_library"] = _normalize_path(normalized.get("endnote_library")) or (enabled_paths[0] if enabled_paths else "")
@@ -81,6 +121,7 @@ def _normalize_config(config: dict[str, Any]) -> dict[str, Any]:
     normalized.setdefault("exclude_dirs", [])
     normalized.setdefault("runtime", {})
     normalized.setdefault("index", {})
+    normalized.setdefault("folder", {})
     normalized.setdefault("models", {})
     normalized.setdefault("service", {})
     normalized.setdefault("updates", {})
@@ -181,6 +222,20 @@ def scoring_settings(config: dict[str, Any]) -> dict[str, float | int]:
 
 def enabled_endnote_libraries(config: dict[str, Any], selector: str | None = None) -> list[dict[str, Any]]:
     libraries = [item for item in config.get("endnote_libraries", []) if item.get("enabled")]
+    if selector is None:
+        return libraries
+    selector_lower = selector.lower()
+    return [
+        item
+        for item in libraries
+        if item.get("id", "").lower() == selector_lower
+        or item.get("name", "").lower() == selector_lower
+        or item.get("path", "").lower() == selector_lower
+    ]
+
+
+def enabled_folder_libraries(config: dict[str, Any], selector: str | None = None) -> list[dict[str, Any]]:
+    libraries = [item for item in config.get("folder_libraries", []) if item.get("enabled")]
     if selector is None:
         return libraries
     selector_lower = selector.lower()

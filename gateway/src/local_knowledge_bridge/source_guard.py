@@ -38,6 +38,17 @@ def validate_obsidian_vault(value: str) -> Path:
     return ensure_readable_directory(value, "Obsidian vault")
 
 
+def validate_zotero_sqlite(value: str) -> Path:
+    path = ensure_readable_file(value, "Zotero sqlite")
+    if path.suffix.lower() != ".sqlite":
+        raise SystemExit(f"Zotero sqlite is not a .sqlite file: {path}")
+    return path
+
+
+def validate_folder_library(value: str) -> Path:
+    return ensure_readable_directory(value, "Folder knowledge source")
+
+
 def endnote_data_dir(library_path: str | Path) -> Path:
     library = Path(library_path).expanduser()
     if library.suffix.lower() == ".enl":

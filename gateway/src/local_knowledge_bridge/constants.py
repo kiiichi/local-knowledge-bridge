@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 SERVICE_HOST = "127.0.0.1"
 SERVICE_PORT = 53744
 RRF_K = 60
@@ -35,6 +35,13 @@ DEFAULT_ROUTE_WEIGHTS = {
     "endnote_docs": 1.1,
     "endnote_attachments": 0.95,
     "endnote_fulltext": 1.0,
+    "zotero_docs": 1.1,
+    "zotero_notes": 1.2,
+    "zotero_annotations": 1.25,
+    "zotero_fulltext": 1.0,
+    "zotero_attachments": 0.95,
+    "folder_docs": 0.85,
+    "folder_chunks": 1.0,
 }
 
 DEFAULT_SCORING = {
@@ -51,4 +58,4 @@ DEFAULT_SCORING = {
     "fts_bonus_scale": 4.0,
 }
 
-SUPPORTED_TARGETS = {"both", "obsidian", "endnote"}
+SUPPORTED_TARGETS = {"both", "obsidian", "endnote", "zotero", "folder"}

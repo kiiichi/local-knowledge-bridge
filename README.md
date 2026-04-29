@@ -5,7 +5,9 @@
 Supported sources:
 
 - `Obsidian` vaults
-- `EndNote` libraries and attached PDFs
+- `EndNote` libraries and attached PDF, Markdown, text, DOCX, PPTX, and XLSX files
+- `Zotero` libraries, notes, annotations, full-text cache, and readable attachments
+- Local folder knowledge sources with Markdown, text, PDF, DOCX, PPTX, and XLSX files
 
 All indexes, logs, models, and runtime files stay on the local machine.
 
@@ -16,7 +18,7 @@ Install or confirm:
 - Windows PowerShell
 - Python 3.11+ available as `py` or `python`
 - Codex desktop or another Codex setup that uses `%USERPROFILE%\.codex`
-- readable local paths for your Obsidian vault and/or EndNote `.enl` library
+- readable local paths for at least one supported source
 
 Check Python:
 
@@ -72,7 +74,20 @@ Configure EndNote:
 & "$LKB\lkb_configure.cmd" --endnote "D:\EndNote\My Library.enl" --endnote-name "Main Library"
 ```
 
-You can configure either source or both. Show the current configuration with:
+Configure Zotero:
+
+```powershell
+& "$LKB\lkb_configure.cmd" --zotero "$env:APPDATA\Zotero\Zotero\Profiles\<profile>\zotero\zotero.sqlite"
+```
+
+Configure one or more folder knowledge sources:
+
+```powershell
+& "$LKB\lkb_configure.cmd" --folder-library "D:\Research Materials" --folder-name "Research Materials"
+& "$LKB\lkb_configure.cmd" --folder-library "E:\Project Files" --folder-name "Project Files"
+```
+
+You can configure any supported source combination. Show the current configuration with:
 
 ```powershell
 & "$LKB\lkb_configure.cmd" --show
@@ -108,6 +123,8 @@ Search:
 ```powershell
 & "$LKB\lkb_search.cmd" both "passive linear optics" --profile balanced --limit 5
 ```
+
+`both` searches all configured sources. Use `obsidian`, `endnote`, `zotero`, or `folder` to restrict a query to one source family.
 
 Ask:
 

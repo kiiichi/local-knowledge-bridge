@@ -5,6 +5,11 @@ from collections import defaultdict
 from pathlib import Path
 
 from .config import enabled_endnote_libraries
+from .document_text import (
+    SUPPORTED_DOCUMENT_SUFFIXES,
+    build_document_chunks,
+    is_supported_document_attachment,
+)
 from .normalize import build_canonical_key, build_search_text, extract_doi, extract_year
 from .pdf_text import build_pdf_chunks, extract_pdf_pages
 from .source_guard import resolve_endnote_components
@@ -43,7 +48,21 @@ def _resolve_attachment_path(data_dir: Path, pdf_dir: Path, relative_path: str) 
     return data_dir / raw
 
 
-def _index_pdf_attachment(
+def _iter_indexable_fallback_attachments(pdf_dir: Path) -> list[Path]:
+    suffixes = {".pdf"} | SUPPORTED_DOCUMENT_SUFFIXES
+    return sorted(path for path in pdf_dir.rglob("*") if path.is_file() and path.suffix.lower() in suffixes)
+
+
+def _attachment_chunks(full_path: Path, chunk_chars: int) -> list[dict[str, object]]:
+    suffix = full_path.suffix.lower()
+    if suffix == ".pdf":
+        return build_pdf_chunks(extract_pdf_pages(full_path), chunk_chars)
+    if is_supported_document_attachment(full_path):
+        return build_document_chunks(full_path, chunk_chars)
+    return []
+
+
+def _index_attachment_fulltext(
     connection: sqlite3.Connection,
     attachment_key: str,
     doc_key: str,
@@ -60,10 +79,9 @@ def _index_pdf_attachment(
     warnings: list[str] = []
     chunk_count = 0
     try:
-        pages = extract_pdf_pages(full_path)
-        chunks = build_pdf_chunks(pages, chunk_chars)
+        chunks = _attachment_chunks(full_path, chunk_chars)
     except Exception as exc:
-        warnings.append(f"PDF parse failed for {full_path}: {exc}")
+        warnings.append(f"Attachment text parse failed for {full_path}: {exc}")
         return 0, warnings
 
     for chunk_index, chunk in enumerate(chunks, start=1):
@@ -131,12 +149,13 @@ def index_endnote(connection: sqlite3.Connection, config: dict, selector: str | 
 
         if layout == "pdf_only":
             if not pdf_dir.exists():
-                warnings.append(f"No readable PDF directory found for EndNote library: {library['path']}")
+                warnings.append(f"No readable attachment directory found for EndNote library: {library['path']}")
                 continue
-            for pdf_path in pdf_dir.rglob("*.pdf"):
-                rel_path = pdf_path.relative_to(data_dir).as_posix()
-                title = pdf_path.stem
-                doc_key = f"{library_id}:pdf:{rel_path}"
+            for attachment_path in _iter_indexable_fallback_attachments(pdf_dir):
+                rel_path = attachment_path.relative_to(data_dir).as_posix()
+                title = attachment_path.stem
+                doc_kind = "pdf" if attachment_path.suffix.lower() == ".pdf" else "attachment"
+                doc_key = f"{library_id}:{doc_kind}:{rel_path}"
                 canonical_key = build_canonical_key("endnote", title, "", "", doc_key)
                 connection.execute(
                     """
@@ -188,7 +207,7 @@ def index_endnote(connection: sqlite3.Connection, config: dict, selector: str | 
                         0,
                         title,
                         rel_path,
-                        str(pdf_path),
+                        str(attachment_path),
                         1,
                         0,
                     ),
@@ -199,7 +218,7 @@ def index_endnote(connection: sqlite3.Connection, config: dict, selector: str | 
                 )
                 doc_count += 1
                 attachment_count += 1
-                indexed_chunks, chunk_warnings = _index_pdf_attachment(
+                indexed_chunks, chunk_warnings = _index_attachment_fulltext(
                     connection,
                     attachment_key,
                     doc_key,
@@ -210,7 +229,7 @@ def index_endnote(connection: sqlite3.Connection, config: dict, selector: str | 
                     "",
                     "",
                     rel_path,
-                    pdf_path,
+                    attachment_path,
                     chunk_chars,
                 )
                 fulltext_count += indexed_chunks
@@ -311,7 +330,10 @@ def index_endnote(connection: sqlite3.Connection, config: dict, selector: str | 
             for attachment in attachments_by_ref.get(ref_id, []):
                 raw_rel_path = str(attachment["file_path"] or "")
                 full_path = _resolve_attachment_path(data_dir, pdf_dir, raw_rel_path)
-                rel_path = full_path.relative_to(data_dir).as_posix() if full_path.exists() and full_path.is_relative_to(data_dir) else raw_rel_path.replace("\\", "/")
+                if full_path.exists() and full_path.is_relative_to(data_dir):
+                    rel_path = full_path.relative_to(data_dir).as_posix()
+                else:
+                    rel_path = raw_rel_path.replace("\\", "/")
                 attachment_key = f"{doc_key}:{int(attachment['file_pos'])}:{rel_path}"
                 connection.execute(
                     """
@@ -340,8 +362,10 @@ def index_endnote(connection: sqlite3.Connection, config: dict, selector: str | 
                 )
                 attachment_count += 1
 
-                if full_path.exists() and full_path.suffix.lower() == ".pdf":
-                    indexed_chunks, chunk_warnings = _index_pdf_attachment(
+                if full_path.exists() and (
+                    full_path.suffix.lower() == ".pdf" or is_supported_document_attachment(full_path)
+                ):
+                    indexed_chunks, chunk_warnings = _index_attachment_fulltext(
                         connection,
                         attachment_key,
                         doc_key,

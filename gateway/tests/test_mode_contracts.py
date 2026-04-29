@@ -7,9 +7,12 @@ from pathlib import Path
 from unittest.mock import patch
 
 GATEWAY_ROOT = Path(__file__).resolve().parents[1]
+TEST_ROOT = Path(__file__).resolve().parent
 SRC_ROOT = GATEWAY_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
+if str(TEST_ROOT) not in sys.path:
+    sys.path.insert(0, str(TEST_ROOT))
 
 from local_knowledge_bridge import evals, reporting, retrieval
 from local_knowledge_bridge.scoring import QueryContext
@@ -157,6 +160,71 @@ class RetrievalModeContractTests(unittest.TestCase):
 
         self.assertEqual(payload["profile"], "deep")
         apply_deep_ranking.assert_called_once_with(request.query, [hit], {}, top_k_rerank=20)
+
+    def test_search_local_both_queries_all_source_routes(self) -> None:
+        request = SearchRequest(query="passive linear optics", target="both", profile="balanced", mode="hybrid", limit=3)
+
+        with (
+            patch.object(retrieval, "selected_profile", return_value="balanced"),
+            patch.object(retrieval, "ensure_index_ready"),
+            patch.object(retrieval, "connect_index", return_value=DummyConnection()),
+            patch.object(retrieval, "ensure_schema"),
+            patch.object(retrieval, "profile_settings", return_value={"top_k_recall": 12}),
+            patch.object(
+                retrieval,
+                "route_weights",
+                return_value={
+                    "obsidian_notes": 1.2,
+                    "obsidian_chunks": 1.4,
+                    "endnote_docs": 1.1,
+                    "endnote_attachments": 0.95,
+                    "endnote_fulltext": 1.0,
+                    "zotero_docs": 1.1,
+                    "zotero_notes": 1.2,
+                    "zotero_annotations": 1.25,
+                    "zotero_fulltext": 1.0,
+                    "zotero_attachments": 0.95,
+                    "folder_docs": 0.85,
+                    "folder_chunks": 1.0,
+                },
+            ),
+            patch.object(retrieval, "scoring_settings", return_value={"char_ngram_n": 3}),
+            patch.object(
+                retrieval,
+                "build_query_context",
+                return_value=QueryContext(
+                    query=request.query,
+                    base_tokens=["passive", "linear", "optics"],
+                    expanded_tokens=["passive", "linear", "optics"],
+                    query_ngrams={},
+                    fts_query='"passive linear optics"',
+                ),
+            ),
+            patch.object(retrieval, "parse_year_filters", return_value=[]),
+            patch.object(retrieval, "_index_db_path", return_value=Path("C:/gateway/.tmp/tests/index/lkb_index.sqlite")),
+            patch.object(retrieval, "_query_route", return_value=[]) as query_route,
+            patch.object(retrieval, "fuse_hits", return_value=[]),
+        ):
+            payload = retrieval.search_local({}, request)
+
+        self.assertEqual(payload["target"], "both")
+        self.assertEqual(
+            [call.kwargs["route"] for call in query_route.call_args_list],
+            [
+                "obsidian_notes",
+                "obsidian_chunks",
+                "endnote_docs",
+                "endnote_attachments",
+                "endnote_fulltext",
+                "zotero_docs",
+                "zotero_notes",
+                "zotero_annotations",
+                "zotero_fulltext",
+                "zotero_attachments",
+                "folder_docs",
+                "folder_chunks",
+            ],
+        )
 
 
 class EvalModeTests(unittest.TestCase):

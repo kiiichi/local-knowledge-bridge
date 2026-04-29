@@ -1,6 +1,6 @@
 ---
 name: local-knowledge-bridge
-description: Search the user's local Obsidian and EndNote knowledge sources before answering research questions. Trigger this skill when the user explicitly mentions lkb, asks to use lkb to search or answer, or wants Codex to ground answers in local notes, papers, PDFs, and reference libraries rather than model memory first.
+description: Search the user's local Obsidian, EndNote, Zotero, and folder knowledge sources before answering research questions. Trigger this skill when the user explicitly mentions lkb, asks to use lkb to search or answer, or wants Codex to ground answers in local notes, papers, PDFs, local folders, and reference libraries rather than model memory first.
 ---
 
 # Local Knowledge Bridge
@@ -11,7 +11,8 @@ Use this skill to answer research questions from the user's local knowledge base
 
 - Treat the configured Obsidian vault as read-only.
 - Treat the configured EndNote library and `.Data` folder as read-only.
-- Never create helper files in the source vault, source library, or source PDF folders.
+- Treat the configured Zotero library and folder knowledge sources as read-only.
+- Never create helper files in the source vault, source library, source PDF folders, Zotero storage, or folder knowledge sources.
 - Keep all derived artifacts inside `C:\Users\<user>\.codex\Function\local_knowledge_bridge`.
 
 ## Gateway
@@ -102,6 +103,8 @@ Raw search:
 ```powershell
 C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_search.cmd both "<query>" --profile balanced --limit 10
 ```
+
+Use target `obsidian`, `endnote`, `zotero`, or `folder` when the user explicitly asks to restrict the search. `both` means all configured source families.
 
 Combined report:
 

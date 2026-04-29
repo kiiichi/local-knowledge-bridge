@@ -17,7 +17,7 @@ from local_knowledge_bridge.service_models import ReportRequest
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build a structured Local Knowledge Bridge report.")
     parser.add_argument("query")
-    parser.add_argument("--target", default="both", choices=["both", "obsidian", "endnote"])
+    parser.add_argument("--target", default="both", choices=["both", "obsidian", "endnote", "zotero", "folder"])
     parser.add_argument("--years")
     parser.add_argument("--limit", type=int, default=8)
     parser.add_argument("--folder")
