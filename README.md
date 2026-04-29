@@ -51,7 +51,7 @@ Your best answers are often already somewhere on your own machine: in an Obsidia
 
 | Method / 支持方式 | Link / 链接 |
 | --- | --- |
-| WeChat / 微信 | [![WeChat](https://img.shields.io/badge/WeChat-Kiiichi-07C160?logo=wechat&logoColor=white)](https://github.com/kiiichi/local-knowledge-bridge/raw/refs/heads/main/sponsor-wechat.png) |
+| WeChat / 微信 | [![WeChat](https://img.shields.io/badge/WeChat-Kiiichi-07C160?logo=wechat&logoColor=white)](https://github.com/kiiichi/local-knowledge-bridge/raw/refs/heads/main/assets/sponsor-wechat.png) |
 | PayPal | [![PayPal](https://img.shields.io/badge/PayPal-Kiiichi-00457C?logo=paypal&logoColor=white)](https://www.paypal.com/paypalme/kiiichi) |
 
 **English**
