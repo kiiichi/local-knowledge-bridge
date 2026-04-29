@@ -16,7 +16,7 @@ Your best answers are often already somewhere on your own machine: in an Obsidia
 
 `Local Knowledge Bridge` gives Codex a local, searchable route into that material. Ask in natural language, invoke `$Local Knowledge Bridge`, mention `Local Knowledge Bridge`, or include `lkb` anywhere in your request, and Codex can search your configured sources before relying on model memory.
 
-**Feature Highlights / 功能亮点**
+**Feature Highlights**
 
 - Natural-language first: use it from Codex with `$Local Knowledge Bridge`, `Local Knowledge Bridge`, or `lkb`; no need to manually run search commands for everyday work.
 - One bridge for scattered knowledge: connect Obsidian, EndNote, Zotero, and local folders into a single local retrieval layer.
@@ -30,7 +30,9 @@ Your best answers are often already somewhere on your own machine: in an Obsidia
 你真正需要的答案，很多时候早就在自己的电脑里：一条 Obsidian 笔记、一篇 Zotero 论文、一个 EndNote 附件、去年下载的 PDF，或者某个项目文件夹里的资料。问题不在于知识不存在，而在于你能不能足够快地找到它、用上它。
 
 `Local Knowledge Bridge` 会为 Codex 打通一条通往本地资料的可检索路径。你只需要用自然语言提问，使用 `$Local Knowledge Bridge`、写出 `Local Knowledge Bridge`，或者在请求中的任意位置加入 `lkb`，Codex 就可以先检索你配置的本地资料，再回答问题。
-
+ 
+ **功能亮点**
+ 
 - 自然语言优先：日常使用直接在 Codex 中写 `$Local Knowledge Bridge`、`Local Knowledge Bridge` 或 `lkb`，不需要手动运行搜索命令。
 - 汇聚分散知识：把 Obsidian、EndNote、Zotero 和本地文件夹接入同一个本地检索层。
 - 本地、默认只读：索引、日志、模型、运行时文件和配置都保留在本机；项目只读取你配置的数据源，不会对你的知识库做任何编辑操作。
