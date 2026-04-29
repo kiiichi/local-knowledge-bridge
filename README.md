@@ -12,7 +12,7 @@ This project installs the `Local Knowledge Bridge` Codex skill and supporting Wi
 
 After configuration, you can connect Obsidian, EndNote, Zotero, and regular folders into one local knowledge bridge. The command-line tools remain available for setup, diagnostics, scripting, and development, while the intended user experience is natural-language access inside Codex.
 
-All indexes, logs, models, runtime files, and configuration stay on your machine. By default, the project reads only the sources you configure and does not copy your knowledge base into the repository.
+All indexes, logs, models, runtime files, and configuration stay on your machine. By default, the project reads only the sources you configure and does not edit your knowledge base.
 
 **中文**
 
@@ -20,7 +20,7 @@ All indexes, logs, models, runtime files, and configuration stay on your machine
 
 配置完成后，你可以把 Obsidian、EndNote、Zotero 和普通文件夹接入同一个本地知识桥。命令行工具仍然可用于安装、诊断、脚本化和开发；面向用户的主要体验是在 Codex 中用自然语言访问本地知识。
 
-所有索引、日志、模型、运行时文件和配置都保留在本机。项目默认只读取你配置的数据源，不会把你的知识库复制到仓库里。
+所有索引、日志、模型、运行时文件和配置都保留在本机。项目默认只读取你配置的数据源，不会对你的知识库做任何编辑操作。
 
 **Supported Sources / 支持的数据源**
 
@@ -37,7 +37,6 @@ All indexes, logs, models, runtime files, and configuration stay on your machine
 | --- | --- |
 | WeChat / 微信 | [![WeChat](https://img.shields.io/badge/WeChat-Kiiichi-07C160?logo=wechat&logoColor=white)](sponsor-wechat.png) |
 | PayPal | [![PayPal](https://img.shields.io/badge/PayPal-Kiiichi-00457C?logo=paypal&logoColor=white)](https://www.paypal.com/paypalme/kiiichi) |
-| Internal sponsorship / 内部赞助 | \[目前内部链接\] |
 
 **English**
 
@@ -112,9 +111,9 @@ After setup, use natural language in Codex. Explicitly mention `Local Knowledge 
 
 | English example | 中文示例 |
 | --- | --- |
-| `Use Local Knowledge Bridge to find my notes about passive linear optics and summarize the key evidence.` | `使用 Local Knowledge Bridge 查找我关于被动线性光学的笔记，并总结关键证据。` |
-| `lkb: based on my Zotero and Obsidian sources, what do I have on retrieval-augmented generation evaluation?` | `lkb：基于我的 Zotero 和 Obsidian 资料，我关于 RAG 评估有哪些内容？` |
-| `Use Local Knowledge Bridge to compare my local notes on deep retrieval and reranking. Cite the sources you used.` | `使用 Local Knowledge Bridge 对比我本地关于 deep retrieval 和 reranking 的笔记，并说明使用了哪些来源。` |
+| `Use Local Knowledge Bridge to find my notes on transformer model compression and summarize the main methods.` | `使用 Local Knowledge Bridge 查找我关于 Transformer 模型压缩的笔记，并总结主要方法。` |
+| `lkb: based on my Zotero and Obsidian sources, what do I have on solid-state battery electrolyte materials?` | `lkb：基于我的 Zotero 和 Obsidian 资料，我关于固态电池电解质材料有哪些内容？` |
+| `Use Local Knowledge Bridge to compare my local notes on CRISPR off-target detection methods. Cite the sources you used.` | `使用 Local Knowledge Bridge 对比我本地关于 CRISPR 脱靶检测方法的笔记，并说明使用了哪些来源。` |
 | `lkb, make a short report from my local papers about passive linear optics.` | `lkb，基于我的本地论文整理一份关于被动线性光学的简短报告。` |
 
 Run diagnostics from PowerShell / 在 PowerShell 中运行诊断:
