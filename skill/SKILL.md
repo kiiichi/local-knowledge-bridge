@@ -109,10 +109,13 @@ C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_bootstrap_runtime.cmd
 
 ## Output Policy
 
-- Cite local evidence by source title and locator, not by leaking full local file paths unless the user asks for paths.
-- For EndNote-backed evidence, prefer: `EndNote: <title>, locator: <locator>`.
-- For Zotero-backed evidence, prefer: `Zotero: <title>, locator: <locator>`.
-- For Obsidian or folder evidence, cite the note/document title or relative path plus locator.
+- Every answer grounded in LKB results must end with a data source list.
+- For literature-backed evidence, include the complete indexed title and DOI when available.
+- For non-literature documents, include the original source file name without translating it and the document path.
+- Include locators where available so the cited passage can be found again.
+- For EndNote-backed evidence, prefer: `EndNote: <title>, DOI: <doi or ->, locator: <locator>, path: <path>`.
+- For Zotero-backed evidence, prefer: `Zotero: <title>, DOI: <doi or ->, locator: <locator>, path: <path>`.
+- For Obsidian or folder evidence, cite the source file name, document path, and locator.
 - If the same source appears repeatedly, define a short alias on first mention and reuse it.
 - Keep local evidence separate from model inference.
 

@@ -114,6 +114,133 @@ class RetrievalModeContractTests(unittest.TestCase):
         self.assertIn("semantic_score=0.770000", result["report_markdown"])
         self.assertIn("rerank_score=0.220000", result["report_markdown"])
 
+    def test_report_payload_appends_data_sources_with_full_paths(self) -> None:
+        payload = {
+            "target": "both",
+            "profile": "balanced",
+            "mode": "hybrid",
+            "hits": [
+                {
+                    "source": "endnote",
+                    "route": "endnote_fulltext",
+                    "title": "Complete Literature Title",
+                    "path": "PDF/123/paper.pdf",
+                    "locator": "p. 8",
+                    "snippet": "cluster graph",
+                    "year": "2020",
+                    "doi": "10.1000/paper",
+                    "canonical_key": "doi:10.1000/paper",
+                    "full_path": "C:\\papers\\paper.pdf",
+                    "score": 0.5,
+                    "lexical_score": 33.0,
+                    "hybrid_score": 44.0,
+                    "semantic_score": 0.77,
+                    "rerank_score": 0.22,
+                    "library_id": "main",
+                    "library_name": "My EndNote Library",
+                    "routes": ["endnote_fulltext"],
+                    "extra": {},
+                },
+                {
+                    "source": "obsidian",
+                    "route": "obsidian_chunks",
+                    "title": "第2章 量子光学基础知识",
+                    "path": "prompts/thesis/chapter2.md",
+                    "locator": "2.4.2",
+                    "snippet": "nullifier",
+                    "year": "",
+                    "doi": "",
+                    "canonical_key": "obsidian:chapter2",
+                    "full_path": "C:\\vault\\prompts\\thesis\\chapter2.md",
+                    "score": 0.4,
+                    "lexical_score": 30.0,
+                    "hybrid_score": 35.0,
+                    "semantic_score": 0.7,
+                    "rerank_score": 0.2,
+                    "library_id": "",
+                    "library_name": "",
+                    "routes": ["obsidian_chunks"],
+                    "extra": {},
+                },
+            ],
+            "total_hits": 2,
+            "debug": {"effective_mode": "hybrid"},
+        }
+
+        result = reporting.build_report_payload("cluster graph", payload, 2)
+
+        self.assertIn("DATA SOURCES", result["report_markdown"])
+        self.assertIn("Literature", result["report_markdown"])
+        self.assertIn("Title: Complete Literature Title", result["report_markdown"])
+        self.assertIn("DOI: 10.1000/paper", result["report_markdown"])
+        self.assertIn("Path: C:\\papers\\paper.pdf", result["report_markdown"])
+        self.assertIn("Documents", result["report_markdown"])
+        self.assertIn("File: chapter2.md", result["report_markdown"])
+        self.assertIn("Path: C:\\vault\\prompts\\thesis\\chapter2.md", result["report_markdown"])
+
+    def test_answer_payload_citations_include_source_metadata(self) -> None:
+        payload = {
+            "hits": [
+                {
+                    "source": "endnote",
+                    "route": "endnote_fulltext",
+                    "title": "Complete Literature Title",
+                    "path": "PDF/123/paper.pdf",
+                    "locator": "p. 8",
+                    "snippet": "cluster graph",
+                    "year": "2020",
+                    "doi": "10.1000/paper",
+                    "canonical_key": "doi:10.1000/paper",
+                    "full_path": "C:\\papers\\paper.pdf",
+                    "score": 0.5,
+                    "library_name": "My EndNote Library",
+                }
+            ]
+        }
+
+        result = reporting.build_answer_payload("question", payload)
+
+        self.assertEqual(result["citations"][0]["doi"], "10.1000/paper")
+        self.assertEqual(result["citations"][0]["full_path"], "C:\\papers\\paper.pdf")
+        self.assertEqual(result["citations"][0]["file_name"], "paper.pdf")
+        self.assertIn("DATA SOURCES", result["answer_markdown"])
+        self.assertIn("DOI: 10.1000/paper", result["answer_markdown"])
+
+    def test_search_results_text_appends_data_sources(self) -> None:
+        payload = {
+            "query": "cluster graph",
+            "hits": [
+                {
+                    "source": "obsidian",
+                    "route": "obsidian_notes",
+                    "title": "第2章 量子光学基础知识",
+                    "path": "prompts/thesis/chapter2.md",
+                    "locator": "",
+                    "snippet": "cluster graph",
+                    "year": "",
+                    "doi": "",
+                    "canonical_key": "obsidian:chapter2",
+                    "full_path": "C:\\vault\\prompts\\thesis\\chapter2.md",
+                    "score": 0.5,
+                    "lexical_score": 33.0,
+                    "hybrid_score": 44.0,
+                    "semantic_score": 0.77,
+                    "rerank_score": 0.22,
+                    "library_id": "",
+                    "library_name": "",
+                    "routes": ["obsidian_notes"],
+                    "extra": {},
+                }
+            ],
+        }
+
+        text = reporting.search_results_text(payload)
+
+        self.assertIn("DATA SOURCES", text)
+        self.assertIn("Documents", text)
+        self.assertIn("File: chapter2.md", text)
+        self.assertIn("Path: C:\\vault\\prompts\\thesis\\chapter2.md", text)
+
     def test_search_local_routes_deep_profile_into_deep_ranking(self) -> None:
         request = SearchRequest(query="passive linear optics", target="obsidian", profile="deep", mode="hybrid", limit=3)
         hit = SearchHit(
