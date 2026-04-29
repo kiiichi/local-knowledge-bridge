@@ -8,7 +8,7 @@
 
 **English**
 
-This project installs the `Local Knowledge Bridge` Codex skill and supporting Windows gateway commands on your machine. In everyday use, you do not need to call `lkb_search` or `lkb_ask` directly. Ask Codex in natural language and explicitly invoke the `Local Knowledge Bridge` skill, or use `lkb` as a short prompt prefix, so Codex knows to search your local sources first.
+This project installs the `Local Knowledge Bridge` Codex skill and supporting Windows gateway commands on your machine. In everyday use, just ask Codex in natural language and explicitly invoke the `Local Knowledge Bridge` skill, or use `lkb` as a short prompt prefix, so Codex knows to search your local sources first.
 
 After configuration, you can connect Obsidian, EndNote, Zotero, and regular folders into one local knowledge bridge. The command-line tools remain available for setup, diagnostics, scripting, and development, while the intended user experience is natural-language access inside Codex.
 
@@ -16,7 +16,7 @@ All indexes, logs, models, runtime files, and configuration stay on your machine
 
 **中文**
 
-这个项目会在你的 Windows 机器上安装 `Local Knowledge Bridge` Codex skill 和配套的 Windows 网关命令。日常使用时，你不需要直接调用 `lkb_search` 或 `lkb_ask`。只要用自然语言向 Codex 提问，并显式写出 `Local Knowledge Bridge` skill，或者用 `lkb` 作为简短前缀，Codex 就会知道应当先检索你的本地资料。
+这个项目会在你的 Windows 机器上安装 `Local Knowledge Bridge` Codex skill 和配套的 Windows 网关命令。日常使用时，只要用自然语言向 Codex 提问，并显式写出 `Local Knowledge Bridge` skill，或者用 `lkb` 作为简短前缀，Codex 就会知道应当先检索你的本地资料。
 
 配置完成后，你可以把 Obsidian、EndNote、Zotero 和普通文件夹接入同一个本地知识桥。命令行工具仍然可用于安装、诊断、脚本化和开发；面向用户的主要体验是在 Codex 中用自然语言访问本地知识。
 
