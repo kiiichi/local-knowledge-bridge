@@ -1,41 +1,88 @@
 # Local Knowledge Bridge
 
-Respons:
-[![微信支付](https://img.shields.io/badge/微信-Kiiichi-green?logo=wechat)](sponsor-wechat.png)
-[![PayPal](https://img.shields.io/badge/PayPal-Kiiichi-blue?logo=paypal)](https://www.paypal.com/paypalme/kiiichi)
+`Local Knowledge Bridge` is a local-first gateway for Codex. It searches your own notes, reference libraries, PDFs, Office documents, and folders before the model falls back to memory.
 
+`Local Knowledge Bridge` 是一个本地优先的 Codex 知识网关。它会在模型依赖自身记忆之前，先检索你的笔记、文献库、PDF、Office 文档和本地文件夹。
 
-`Local Knowledge Bridge` installs a local Codex skill and Windows gateway that searches your own notes, reference libraries, PDFs, Office documents, and folders before falling back to model memory.
+## Project Introduction / 项目介绍
 
-Supported sources:
+**中文**
 
-- `Obsidian` vaults
-- `EndNote` libraries and attached PDF, Markdown, text, DOCX, PPTX, and XLSX files
-- `Zotero` libraries, notes, annotations, full-text cache, and readable attachments
-- Local folder knowledge sources with Markdown, text, PDF, DOCX, PPTX, and XLSX files
+这个项目会在你的 Windows 机器上安装一个本地 Codex skill 和一组 `lkb_*` 网关命令。配置完成后，你可以把 Obsidian、EndNote、Zotero 和普通文件夹接入同一个本地索引，用 `lkb_search` 检索证据，用 `lkb_ask` 基于本地材料回答问题，也可以在需要时启用本地 deep 检索。
 
-All indexes, logs, models, runtime files, and configuration stay on the local machine.
+所有索引、日志、模型、运行时文件和配置都保留在本机。项目默认只读取你配置的数据源，不会把你的知识库复制到仓库里。
 
-## Prerequisites
+**English**
 
-- Windows PowerShell
-- Python 3.11+ available as `py` or `python`
-- Codex desktop or another Codex setup that uses `%USERPROFILE%\.codex`
-- At least one readable local knowledge source
+This project installs a local Codex skill and a set of `lkb_*` gateway commands on your Windows machine. After configuration, you can connect Obsidian, EndNote, Zotero, and regular folders into one local index, retrieve evidence with `lkb_search`, answer from local material with `lkb_ask`, and optionally enable local deep retrieval.
 
-Check Python:
+All indexes, logs, models, runtime files, and configuration stay on your machine. By default, the project reads only the sources you configure and does not copy your knowledge base into the repository.
+
+**支持的数据源 / Supported Sources**
+
+| 中文 | English |
+| --- | --- |
+| `Obsidian` 知识库 | `Obsidian` vaults |
+| `EndNote` 文献库，以及可读取的 PDF、Markdown、文本、DOCX、PPTX、XLSX 附件 | `EndNote` libraries and readable PDF, Markdown, text, DOCX, PPTX, and XLSX attachments |
+| `Zotero` 文献库、笔记、批注、全文缓存和可读取附件 | `Zotero` libraries, notes, annotations, full-text cache, and readable attachments |
+| 本地文件夹中的 Markdown、文本、PDF、DOCX、PPTX、XLSX 文件 | Local folders containing Markdown, text, PDF, DOCX, PPTX, and XLSX files |
+
+## Sponsorship / 赞助
+
+| 支持方式 / Method | 链接 / Link |
+| --- | --- |
+| 微信 / WeChat | [![WeChat](https://img.shields.io/badge/WeChat-Kiiichi-07C160?logo=wechat&logoColor=white)](sponsor-wechat.png) |
+| PayPal | [![PayPal](https://img.shields.io/badge/PayPal-Kiiichi-00457C?logo=paypal&logoColor=white)](https://www.paypal.com/paypalme/kiiichi) |
+| 内部赞助 / Internal sponsorship | \[目前内部链接\] |
+
+**中文**
+
+很高兴这个项目能遇见你。
+
+我把它开源出来，是真心希望它能为你带来一点帮助。也许是节省一段摸索的时间，也许是解决一个棘手的问题，又或者是成为你前行的路上，一块小小的垫脚石。
+
+愿你始终勇敢，不负韶华，在属于自己的征途上披荆斩棘、一往无前。
+
+如果这个项目曾在某个时刻照亮过你，而你恰好有余力，欢迎请我喝杯咖啡，或者留下一份赞助。你的每一份支持，都会让这个工具走得更远，也让我更有动力把它打磨得更好。
+
+**English**
+
+I'm truly glad this project found you.
+
+I built and open-sourced it with the hope that it can help you in some way: save you time, solve a tricky problem, or simply give you one less thing to worry about on your journey.
+
+May you stay brave, make the most of your time, and charge ahead fearlessly through whatever challenges come your way.
+
+If this project has ever made your day a little easier, and you have the means, you're welcome to buy me a coffee or leave a sponsorship. Every bit of support keeps this project alive and evolving.
+
+## Prerequisites / 前期准备
+
+| 中文 | English |
+| --- | --- |
+| Windows PowerShell | Windows PowerShell |
+| Python 3.11+，可通过 `py` 或 `python` 调用 | Python 3.11+ available as `py` or `python` |
+| Codex desktop，或其他使用 `%USERPROFILE%\.codex` 的 Codex 环境 | Codex desktop or another Codex setup that uses `%USERPROFILE%\.codex` |
+| 至少一个可读取的本地知识源 | At least one readable local knowledge source |
+
+检查 Python / Check Python:
 
 ```powershell
 py -3 --version
 ```
 
-If `py` is not available:
+如果 `py` 不可用，请改用 `python` / If `py` is not available:
 
 ```powershell
 python --version
 ```
 
-## Quick Start
+## Quick Start / 快速启动
+
+**中文**
+
+在仓库根目录双击 `lkb_setup.cmd`，或在 PowerShell 中运行：
+
+**English**
 
 Double-click `lkb_setup.cmd` from the repo root, or run:
 
@@ -44,27 +91,29 @@ cd <repo>\local-knowledge-bridge
 .\lkb_setup.cmd
 ```
 
-The setup wizard asks whether to:
+安装向导会询问你要执行哪一种操作 / The setup wizard asks whether to:
 
-- configure the existing deployment
-- install or redeploy Local Knowledge Bridge
+- 配置已有部署 / configure the existing deployment
+- 安装或重新部署 Local Knowledge Bridge / install or redeploy Local Knowledge Bridge
+
+选择配置后，会打开已部署的维护向导。你可以在其中添加或编辑 Obsidian、EndNote、Zotero 和文件夹数据源，选择 route-weight 预设，配置 deep 检索，查看状态，并重建数据库。
 
 Configuration opens the deployed maintenance wizard. Use it to add or edit Obsidian, EndNote, Zotero, and folder sources, choose route-weight presets, configure deep retrieval, inspect status, and rebuild the database.
 
-After setup, search everything configured:
+完成设置后，检索所有已配置的数据源 / After setup, search everything configured:
 
 ```powershell
 $LKB = "$env:USERPROFILE\.codex\Function\local_knowledge_bridge"
 & "$LKB\lkb_search.cmd" both "passive linear optics" --profile balanced --limit 5
 ```
 
-Ask a question:
+基于本地材料提问 / Ask a question:
 
 ```powershell
 & "$LKB\lkb_ask.cmd" "What is the passive linear optics paper about?" --profile fast --limit 3
 ```
 
-Run diagnostics:
+运行诊断 / Run diagnostics:
 
 ```powershell
 & "$LKB\lkb_doctor.cmd" --json
