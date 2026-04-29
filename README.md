@@ -1,5 +1,10 @@
 # Local Knowledge Bridge
 
+Respons:
+[![微信支付](https://img.shields.io/badge/微信-Kiiichi-green?logo=wechat)](sponsor-wechat.png)
+[![PayPal](https://img.shields.io/badge/PayPal-Kiiichi-blue?logo=paypal)](https://www.paypal.com/paypalme/kiiichi)
+
+
 `Local Knowledge Bridge` installs a local Codex skill and Windows gateway that searches your own notes, reference libraries, PDFs, Office documents, and folders before falling back to model memory.
 
 Supported sources:
