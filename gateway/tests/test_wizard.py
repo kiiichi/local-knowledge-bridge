@@ -99,6 +99,21 @@ class WizardSourceTests(unittest.TestCase):
         validate.assert_called_once_with("C:/Zotero/zotero.sqlite")
         self.assertEqual(app.config["zotero_sqlite"], "C:\\Zotero\\zotero.sqlite")
 
+    def test_path_prompts_say_not_to_quote_and_accept_accidental_quotes(self) -> None:
+        prompts: list[str] = []
+        inputs = iter(["1", '"C:/Notes With Spaces"'])
+        app = wizard.Wizard(
+            config={},
+            input_func=lambda prompt: prompts.append(prompt) or next(inputs),
+            print_func=lambda *args, **kwargs: None,
+        )
+
+        with patch.object(wizard, "validate_obsidian_vault", return_value=Path("C:/Notes With Spaces")) as validate:
+            app.manage_obsidian()
+
+        validate.assert_called_once_with("C:/Notes With Spaces")
+        self.assertTrue(any("do not add quotes" in prompt for prompt in prompts))
+
 
 class WizardDeepAndActionTests(unittest.TestCase):
     def test_deep_device_and_default_profile_are_preset_only_config_changes(self) -> None:
@@ -246,6 +261,7 @@ class WizardWrapperTests(unittest.TestCase):
         self.assertIn("-IncludeDeepDeps", text)
         self.assertIn("-PrefetchModels", text)
         self.assertIn("Open LKB maintenance wizard", text)
+        self.assertIn("paste raw paths without quotes", text)
 
     def test_repo_setup_cmd_launches_script_with_bypass_and_pause_on_failure(self) -> None:
         text = (GATEWAY_ROOT.parent / "lkb_setup.cmd").read_text(encoding="utf-8")

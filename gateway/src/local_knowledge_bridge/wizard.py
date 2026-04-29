@@ -36,6 +36,7 @@ WEIGHT_PRESETS = {
 
 DEEP_DEVICES = {"cuda_if_available", "cpu", "cuda"}
 PROFILES = {"fast", "balanced", "deep"}
+PATH_INPUT_HINT = "do not add quotes; paste the raw path even if it contains spaces"
 
 
 def _clamp_weight(value: float) -> float:
@@ -115,6 +116,12 @@ def _system_exit_message(exc: SystemExit) -> str:
     if exc.code is None:
         return exc.__class__.__name__
     return str(exc.code).strip() or exc.__class__.__name__
+
+
+def _strip_wrapping_quotes(value: str) -> str:
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+        return value[1:-1].strip()
+    return value
 
 
 def _matches_library(item: dict[str, Any], value: str) -> bool:
@@ -278,6 +285,10 @@ class Wizard:
     def _prompt(self, label: str, default: str | None = None) -> str:
         return self.ui.prompt(label, default)
 
+    def _prompt_path(self, label: str) -> str:
+        value = self._prompt(f"{label} ({PATH_INPUT_HINT})")
+        return _strip_wrapping_quotes(value)
+
     def confirm(self, label: str, *, default: bool = False) -> bool:
         return self.ui.confirm(label, default=default)
 
@@ -340,7 +351,7 @@ class Wizard:
         )
         choice = self._prompt("Select").lower()
         if choice == "1":
-            path = self._prompt("Obsidian vault path")
+            path = self._prompt_path("Obsidian vault path")
             if not path:
                 return
             self.config["obsidian_vault"] = str(validate_obsidian_vault(path))
@@ -356,7 +367,7 @@ class Wizard:
         )
         choice = self._prompt("Select").lower()
         if choice == "1":
-            path = self._prompt("Zotero zotero.sqlite path")
+            path = self._prompt_path("Zotero zotero.sqlite path")
             if not path:
                 return
             self.config["zotero_sqlite"] = str(validate_zotero_sqlite(path))
@@ -408,14 +419,14 @@ class Wizard:
 
     def _add_or_update_library(self, key: str) -> None:
         if key == "endnote_libraries":
-            path = self._prompt("EndNote .enl path")
+            path = self._prompt_path("EndNote .enl path")
             if not path:
                 return
             name = self._prompt("Display name", Path(path).stem).strip()
             add_or_update_endnote_library(self.config, path, name)
             self.mark_dirty()
             return
-        path = self._prompt("Folder source path")
+        path = self._prompt_path("Folder source path")
         if not path:
             return
         name = self._prompt("Display name", Path(path).name or "Folder").strip()

@@ -68,6 +68,7 @@ Write-Section 'Local Knowledge Bridge Setup'
 Write-Host "Repo root : $repoRoot"
 Write-Host "Codex home: $CodexHome"
 Write-Host "Gateway   : $gatewayTarget"
+Write-Host "Path input: in the maintenance wizard, paste raw paths without quotes, even if they contain spaces."
 
 Write-Host ""
 Write-Host "1. Configure existing deployment"
