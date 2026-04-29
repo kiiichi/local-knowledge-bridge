@@ -8,19 +8,31 @@
 
 **English**
 
-This project installs the `Local Knowledge Bridge` Codex skill and supporting Windows gateway commands on your machine. In everyday use, just ask Codex in natural language and invoke the skill as `$Local Knowledge Bridge`, mention `Local Knowledge Bridge`, or include `lkb` anywhere in your request so Codex knows to search your local sources first.
+Your best answers are often already somewhere on your own machine: in an Obsidian note, a Zotero paper, an EndNote attachment, a PDF from last year, or a folder full of project files. The problem is not that the knowledge is missing. The problem is finding the right piece quickly enough to use it.
 
-After configuration, you can connect Obsidian, EndNote, Zotero, and regular folders into one local knowledge bridge. The command-line tools remain available for setup, diagnostics, scripting, and development, while the intended user experience is natural-language access inside Codex.
+`Local Knowledge Bridge` gives Codex a local, searchable route into that material. Ask in natural language, invoke `$Local Knowledge Bridge`, mention `Local Knowledge Bridge`, or include `lkb` anywhere in your request, and Codex can search your configured sources before relying on model memory.
 
-All indexes, logs, models, runtime files, and configuration stay on your machine. By default, the project reads only the sources you configure and does not edit your knowledge base.
+**Feature Highlights / 功能亮点**
+
+- Natural-language first: use it from Codex with `$Local Knowledge Bridge`, `Local Knowledge Bridge`, or `lkb`; no need to manually run search commands for everyday work.
+- One bridge for scattered knowledge: connect Obsidian, EndNote, Zotero, and local folders into a single local retrieval layer.
+- Local and read-only by default: indexes, logs, models, runtime files, and configuration stay on your machine; the project reads configured sources and does not edit your knowledge base.
+- Practical retrieval modes: use `fast` for quick lookup, `balanced` for broader evidence, and optional `deep` for local semantic retrieval and reranking.
+- Evidence-oriented answers: make Codex look through your own notes, papers, annotations, and documents before falling back to general model memory.
+- Still scriptable when needed: the `lkb_*` commands remain available for setup, diagnostics, rebuilds, automation, and development.
 
 **中文**
 
-这个项目会在你的 Windows 机器上安装 `Local Knowledge Bridge` Codex skill 和配套的 Windows 网关命令。日常使用时，只要用自然语言向 Codex 提问，并使用 `$Local Knowledge Bridge` 调用 skill，写出 `Local Knowledge Bridge`，或者在请求中的任意位置加入 `lkb`，Codex 就会知道应当先检索你的本地资料。
+你真正需要的答案，很多时候早就在自己的电脑里：一条 Obsidian 笔记、一篇 Zotero 论文、一个 EndNote 附件、去年下载的 PDF，或者某个项目文件夹里的资料。问题不在于知识不存在，而在于你能不能足够快地找到它、用上它。
 
-配置完成后，你可以把 Obsidian、EndNote、Zotero 和普通文件夹接入同一个本地知识桥。命令行工具仍然可用于安装、诊断、脚本化和开发；面向用户的主要体验是在 Codex 中用自然语言访问本地知识。
+`Local Knowledge Bridge` 会为 Codex 打通一条通往本地资料的可检索路径。你只需要用自然语言提问，使用 `$Local Knowledge Bridge`、写出 `Local Knowledge Bridge`，或者在请求中的任意位置加入 `lkb`，Codex 就可以先检索你配置的本地资料，再回答问题。
 
-所有索引、日志、模型、运行时文件和配置都保留在本机。项目默认只读取你配置的数据源，不会对你的知识库做任何编辑操作。
+- 自然语言优先：日常使用直接在 Codex 中写 `$Local Knowledge Bridge`、`Local Knowledge Bridge` 或 `lkb`，不需要手动运行搜索命令。
+- 汇聚分散知识：把 Obsidian、EndNote、Zotero 和本地文件夹接入同一个本地检索层。
+- 本地、默认只读：索引、日志、模型、运行时文件和配置都保留在本机；项目只读取你配置的数据源，不会对你的知识库做任何编辑操作。
+- 检索模式实用：`fast` 适合快速查找，`balanced` 适合更充分的证据检索，可选 `deep` 用于本地语义检索和 reranking。
+- 面向证据回答：让 Codex 先查看你的笔记、论文、批注和文档，再退回到模型通用记忆。
+- 需要时仍可脚本化：`lkb_*` 命令仍可用于安装、诊断、重建索引、自动化和开发。
 
 **Supported Sources / 支持的数据源**
 
