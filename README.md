@@ -6,6 +6,10 @@
 
 ## Project Introduction / 项目介绍
 
+<p align="center">
+  <img src="assets/lkb-comic.png" alt="Four-panel comic: a cat imagines a luxury cat house, searches through messy files, uses lkb, and happily receives the right documents." width="900">
+</p>
+
 **English**
 
 Your best answers are often already somewhere on your own machine: in an Obsidian note, a Zotero paper, an EndNote attachment, a PDF from last year, or a folder full of project files. The problem is not that the knowledge is missing. The problem is finding the right piece quickly enough to use it.
