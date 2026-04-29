@@ -140,7 +140,7 @@ After setup, use natural language in Codex. Invoke `$Local Knowledge Bridge`, me
 | `$Local Knowledge Bridge: find my notes on transformer model compression and summarize the main methods.` | `$Local Knowledge Bridge：查找我关于 Transformer 模型压缩的笔记，并总结主要方法。` |
 | `Based on my Zotero and Obsidian sources, use lkb to find what I have on solid-state battery electrolyte materials.` | `基于我的 Zotero 和 Obsidian 资料，用 lkb 查找我关于固态电池电解质材料有哪些内容。` |
 | `Compare my local notes on CRISPR off-target detection methods with Local Knowledge Bridge, and cite the sources you used.` | `用 Local Knowledge Bridge 对比我本地关于 CRISPR 脱靶检测方法的笔记，并说明使用了哪些来源。` |
-| `lkb, make a short report from my local papers about passive linear optics.` | `lkb，基于我的本地论文整理一份关于被动线性光学的简短报告。` |
+| `lkb, use deep mode to make a short report from my local papers about passive linear optics.` | `lkb，使用 deep 模式，基于我的本地论文整理一份关于被动线性光学的简短报告。` |
 
 Run diagnostics from PowerShell / 在 PowerShell 中运行诊断:
 
