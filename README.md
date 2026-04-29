@@ -99,6 +99,16 @@ The setup wizard asks whether to / 安装向导会询问你要执行哪一种操
 - configure the existing deployment / 配置已有部署
 - install or redeploy Local Knowledge Bridge / 安装或重新部署 Local Knowledge Bridge
 
+### Setup Choices / 安装选项
+
+When installing or redeploying, `Copy` mode is the normal choice: it copies the gateway and skill into your Codex home so the installed tool stays stable. `Link` mode is mainly for development: the installed gateway and skill point back to this repo, so local source edits take effect without reinstalling.
+
+安装或重新部署时，`Copy` 模式是普通用户的默认选择：它会把 gateway 和 skill 复制到你的 Codex home，让已安装工具保持稳定。`Link` 模式主要用于开发：已安装的 gateway 和 skill 会指向当前仓库，因此本地源码改动不需要重新安装就能生效。
+
+`deep` mode is optional. It enables local embedding and reranking models for deeper semantic retrieval, but it requires extra dependencies and model downloads under `gateway/.models/`. You can skip it at first; `fast` and `balanced` work without loading deep models.
+
+`deep` 模式是可选项。它会启用本地 embedding 和 reranking 模型，用于更深入的语义检索，但需要额外依赖，并会在 `gateway/.models/` 下下载模型。你可以先跳过它；`fast` 和 `balanced` 不需要加载 deep 模型也能使用。
+
 Configuration opens the deployed maintenance wizard. Use it to add or edit Obsidian, EndNote, Zotero, and folder sources, choose route-weight presets, configure deep retrieval, inspect status, and rebuild the database.
 
 选择配置后，会打开已部署的维护向导。你可以在其中添加或编辑 Obsidian、EndNote、Zotero 和文件夹数据源，选择 route-weight 预设，配置 deep 检索，查看状态，并重建数据库。
