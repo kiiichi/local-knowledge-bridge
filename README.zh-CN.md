@@ -72,15 +72,43 @@ cd <repo>\local-knowledge-bridge
 
 当维护向导要求输入数据源路径时，直接粘贴原始路径，不要加引号，即使路径里有空格。
 
-## 安装选项
+### 安装选项
 
 安装或重新部署时，`Copy` 模式是普通用户的默认选择：它会把 gateway 和 skill 复制到你的 Codex home，让已安装工具保持稳定。`Link` 模式主要用于开发：已安装的 gateway 和 skill 会指向当前仓库，因此本地源码改动不需要重新安装就能生效。
 
-`deep` 模式是可选项。它会启用本地 embedding 和 reranking 模型，用于更深入的语义检索，但需要额外依赖，并会在 `gateway/.models/` 下下载约 6 GB 模型。你可以先跳过它，之后再从维护向导启用；`fast` 和 `balanced` 不需要加载 deep 模型也能使用。
+`deep` 模式是可选项。它会启用本地 embedding 和 reranking 模型，用于更深入的语义检索，但需要额外依赖，并会在 `gateway/.models/` 下下载约 6 GB 模型。第一次部署时选择 `deep` 可能耗时较长，网络较慢时尤其明显。你可以先跳过它，之后再从维护向导启用；`fast` 和 `balanced` 不需要加载 deep 模型也能使用。
 
 选择配置后，会打开已部署的维护向导。你可以在其中添加或编辑 Obsidian、EndNote、Zotero 和文件夹数据源，选择 route-weight 预设，配置 deep 检索，查看状态，并重建数据库。
 
-## 在 Codex 中使用
+### 后续启用 Deep 模式
+
+第一次安装时可以跳过 `deep`。之后如果要启用，请再次运行 `lkb_setup.cmd`，选择已有部署配置路径，而不是重新部署：
+
+```powershell
+cd <repo>\local-knowledge-bridge
+.\lkb_setup.cmd
+```
+
+依次选择：
+
+1. `Configure existing deployment`
+2. `Configure deep retrieval`
+3. `Install deep dependencies and prefetch models`
+
+默认 `BAAI/bge-m3` embedding 模型和 `BAAI/bge-reranker-v2-m3` reranker 约需下载 6 GB。预取过程中控制台会显示下载进度和速度。
+
+不要为了补装 `deep` 直接选择 `Install or redeploy`；重新部署用于替换已安装的 gateway 和 skill，只应在你确实要重装部署文件时使用。
+
+下载后检查就绪状态：
+
+```powershell
+$LKB = "$env:USERPROFILE\.codex\Function\local_knowledge_bridge"
+& "$LKB\lkb_doctor.cmd" --json
+```
+
+当 `deep_status.ready` 为 `true` 后，就可以在 search、ask 或 report 命令中使用 `--profile deep`。
+
+### 在 Codex 中使用
 
 完成设置后，请在 Codex 中用自然语言使用它。当你希望 Codex 优先检索已配置的本地资料时，可以使用 `$Local Knowledge Bridge`，显式写出 `Local Knowledge Bridge`，或者在提示词中的任意位置加入 `lkb`。
 
@@ -209,34 +237,6 @@ powershell -ExecutionPolicy Bypass -File .\scripts\lkb_setup.ps1
 nvidia-smi
 & "$LKB\runtime\py311\python.exe" -c "import torch; print(torch.__version__); print(torch.version.cuda); print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'no cuda')"
 ```
-
-## 后续启用 Deep 模式
-
-第一次安装时可以跳过 `deep`。之后如果要启用，请再次运行 `lkb_setup.cmd`，选择已有部署配置路径，而不是重新部署：
-
-```powershell
-cd <repo>\local-knowledge-bridge
-.\lkb_setup.cmd
-```
-
-依次选择：
-
-1. `Configure existing deployment`
-2. `Configure deep retrieval`
-3. `Install deep dependencies and prefetch models`
-
-默认 `BAAI/bge-m3` embedding 模型和 `BAAI/bge-reranker-v2-m3` reranker 约需下载 6 GB。预取过程中控制台会显示下载进度和速度。
-
-不要为了补装 `deep` 直接选择 `Install or redeploy`；重新部署用于替换已安装的 gateway 和 skill，只应在你确实要重装部署文件时使用。
-
-下载后检查就绪状态：
-
-```powershell
-$LKB = "$env:USERPROFILE\.codex\Function\local_knowledge_bridge"
-& "$LKB\lkb_doctor.cmd" --json
-```
-
-当 `deep_status.ready` 为 `true` 后，就可以在 search、ask 或 report 命令中使用 `--profile deep`。
 
 ## 开发
 

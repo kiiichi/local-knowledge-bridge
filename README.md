@@ -72,15 +72,43 @@ The setup wizard asks whether to:
 
 When the maintenance wizard asks for source paths, paste the raw path without quotes, even if the path contains spaces.
 
-## Setup Choices
+### Setup Choices
 
 When installing or redeploying, `Copy` mode is the normal choice: it copies the gateway and skill into your Codex home so the installed tool stays stable. `Link` mode is mainly for development: the installed gateway and skill point back to this repo, so local source edits take effect without reinstalling.
 
-`deep` mode is optional. It enables local embedding and reranking models for deeper semantic retrieval, but it requires extra dependencies and about 6 GB of model downloads under `gateway/.models/`. You can skip it at first and enable it later from the maintenance wizard; `fast` and `balanced` work without loading deep models.
+`deep` mode is optional. It enables local embedding and reranking models for deeper semantic retrieval, but it requires extra dependencies and about 6 GB of model downloads under `gateway/.models/`. Choosing `deep` during the first install can take a long time, especially on a slow network. You can skip it at first and enable it later from the maintenance wizard; `fast` and `balanced` work without loading deep models.
 
 Configuration opens the deployed maintenance wizard. Use it to add or edit Obsidian, EndNote, Zotero, and folder sources, choose route-weight presets, configure deep retrieval, inspect status, and rebuild the database.
 
-## Use It In Codex
+### Enable Deep Mode Later
+
+You can skip `deep` during the first install. To enable it later, run the setup entry again and choose the existing deployment path instead of redeploying:
+
+```powershell
+cd <repo>\local-knowledge-bridge
+.\lkb_setup.cmd
+```
+
+Select these wizard options:
+
+1. `Configure existing deployment`
+2. `Configure deep retrieval`
+3. `Install deep dependencies and prefetch models`
+
+This downloads about 6 GB for the default `BAAI/bge-m3` embedding model and `BAAI/bge-reranker-v2-m3` reranker. The console shows download progress and speed during the prefetch step.
+
+Do not choose `Install or redeploy` just to add `deep`; redeploy is for replacing the installed gateway and skill. Use redeploy only when you intentionally want to reinstall the deployed files.
+
+Check readiness after the download:
+
+```powershell
+$LKB = "$env:USERPROFILE\.codex\Function\local_knowledge_bridge"
+& "$LKB\lkb_doctor.cmd" --json
+```
+
+When `deep_status.ready` is `true`, use `--profile deep` in search, ask, or report commands.
+
+### Use It In Codex
 
 After setup, use natural language in Codex. Invoke `$Local Knowledge Bridge`, mention `Local Knowledge Bridge`, or include `lkb` anywhere in the prompt when you want Codex to search your configured local sources first.
 
@@ -209,34 +237,6 @@ If you want GPU deep retrieval, confirm the embedded runtime can see CUDA:
 nvidia-smi
 & "$LKB\runtime\py311\python.exe" -c "import torch; print(torch.__version__); print(torch.version.cuda); print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'no cuda')"
 ```
-
-## Enable Deep Mode Later
-
-You can skip `deep` during the first install. To enable it later, run the setup entry again and choose the existing deployment path instead of redeploying:
-
-```powershell
-cd <repo>\local-knowledge-bridge
-.\lkb_setup.cmd
-```
-
-Select these wizard options:
-
-1. `Configure existing deployment`
-2. `Configure deep retrieval`
-3. `Install deep dependencies and prefetch models`
-
-This downloads about 6 GB for the default `BAAI/bge-m3` embedding model and `BAAI/bge-reranker-v2-m3` reranker. The console shows download progress and speed during the prefetch step.
-
-Do not choose `Install or redeploy` just to add `deep`; redeploy is for replacing the installed gateway and skill. Use redeploy only when you intentionally want to reinstall the deployed files.
-
-Check readiness after the download:
-
-```powershell
-$LKB = "$env:USERPROFILE\.codex\Function\local_knowledge_bridge"
-& "$LKB\lkb_doctor.cmd" --json
-```
-
-When `deep_status.ready` is `true`, use `--profile deep` in search, ask, or report commands.
 
 ## Development
 
