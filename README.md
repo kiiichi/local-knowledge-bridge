@@ -1,22 +1,20 @@
+## [中文 README / Chinese Documentation](README.zh-CN.md)
+
 # Local Knowledge Bridge
 
 `Local Knowledge Bridge` is a local-first gateway for Codex. It searches your own notes, reference libraries, PDFs, Office documents, and folders before the model falls back to memory.
 
-`Local Knowledge Bridge` 是一个本地优先的 Codex 知识网关。它会在模型依赖自身记忆之前，先检索你的笔记、文献库、PDF、Office 文档和本地文件夹。
-
-## Project Introduction / 项目介绍
+## Project Introduction
 
 <p align="center">
   <img src="assets/lkb-comic.jpg" alt="Four-panel comic: a cat imagines a luxury cat house, searches through messy files, uses lkb, and happily receives the right documents." width="900">
 </p>
 
-**English**
-
 Your best answers are often already somewhere on your own machine: in an Obsidian note, a Zotero paper, an EndNote attachment, a PDF from last year, or a folder full of project files. The problem is not that the knowledge is missing. The problem is finding the right piece quickly enough to use it.
 
 `Local Knowledge Bridge` gives Codex a local, searchable route into that material. Ask in natural language, invoke `$Local Knowledge Bridge`, mention `Local Knowledge Bridge`, or include `lkb` anywhere in your request, and Codex can search your configured sources before relying on model memory.
 
-**Feature Highlights**
+## Feature Highlights
 
 - Natural-language first: use it from Codex with `$Local Knowledge Bridge`, `Local Knowledge Bridge`, or `lkb`; no need to manually run search commands for everyday work.
 - One bridge for scattered knowledge: connect Obsidian, EndNote, Zotero, and local folders into a single local retrieval layer.
@@ -25,38 +23,16 @@ Your best answers are often already somewhere on your own machine: in an Obsidia
 - Evidence-oriented answers: make Codex look through your own notes, papers, annotations, and documents before falling back to general model memory.
 - Still scriptable when needed: the `lkb_*` commands remain available for setup, diagnostics, rebuilds, automation, and development.
 
-**中文**
+## Supported Sources
 
-你真正需要的答案，很多时候早就在自己的电脑里：一条 Obsidian 笔记、一篇 Zotero 论文、一个 EndNote 附件、去年下载的 PDF，或者某个项目文件夹里的资料。问题不在于知识不存在，而在于你能不能足够快地找到它、用上它。
-
-`Local Knowledge Bridge` 会为 Codex 打通一条通往本地资料的可检索路径。你只需要用自然语言提问，使用 `$Local Knowledge Bridge`、写出 `Local Knowledge Bridge`，或者在请求中的任意位置加入 `lkb`，Codex 就可以先检索你配置的本地资料，再回答问题。
- 
- **功能亮点**
- 
-- 自然语言优先：日常使用直接在 Codex 中写 `$Local Knowledge Bridge`、`Local Knowledge Bridge` 或 `lkb`，不需要手动运行搜索命令。
-- 汇聚分散知识：把 Obsidian、EndNote、Zotero 和本地文件夹接入同一个本地检索层。
-- 本地、默认只读：索引、日志、模型、运行时文件和配置都保留在本机；项目只读取你配置的数据源，不会对你的知识库做任何编辑操作。
-- 检索模式实用：`fast` 适合快速查找，`balanced` 适合更充分的证据检索，可选 `deep` 用于本地语义检索和 reranking。
-- 面向证据回答：让 Codex 先查看你的笔记、论文、批注和文档，再退回到模型通用记忆。
-- 需要时仍可脚本化：`lkb_*` 命令仍可用于安装、诊断、重建索引、自动化和开发。
-
-**Supported Sources / 支持的数据源**
-
-| English | 中文 |
+| Source | Scope |
 | --- | --- |
-| `Obsidian` vaults | `Obsidian` 知识库 |
-| `EndNote` libraries and readable PDF, Markdown, text, DOCX, PPTX, and XLSX attachments | `EndNote` 文献库，以及可读取的 PDF、Markdown、文本、DOCX、PPTX、XLSX 附件 |
-| `Zotero` libraries, notes, annotations, full-text cache, and readable attachments | `Zotero` 文献库、笔记、批注、全文缓存和可读取附件 |
-| Local folders containing Markdown, text, PDF, DOCX, PPTX, and XLSX files | 本地文件夹中的 Markdown、文本、PDF、DOCX、PPTX、XLSX 文件 |
+| `Obsidian` vaults | Markdown notes and note chunks |
+| `EndNote` libraries | Library records plus readable PDF, Markdown, text, DOCX, PPTX, and XLSX attachments |
+| `Zotero` libraries | Library records, notes, annotations, full-text cache, and readable attachments |
+| Local folders | Markdown, text, PDF, DOCX, PPTX, and XLSX files |
 
-## Sponsorship / 赞助
-
-| Method / 支持方式 | Link / 链接 |
-| --- | --- |
-| WeChat / 微信 | [![WeChat](https://img.shields.io/badge/WeChat-Kiiichi-07C160?logo=wechat&logoColor=white)](https://github.com/kiiichi/local-knowledge-bridge/raw/refs/heads/main/assets/sponsor-wechat.png) |
-| PayPal | [![PayPal](https://img.shields.io/badge/PayPal-Kiiichi-00457C?logo=paypal&logoColor=white)](https://www.paypal.com/paypalme/kiiichi) |
-
-**English**
+## Sponsorship
 
 I'm truly glad this project found you.
 
@@ -66,85 +42,56 @@ May you stay brave, make the most of your time, and charge ahead fearlessly thro
 
 If this project has ever made your day a little easier, and you have the means, you're welcome to buy me a coffee or leave a sponsorship. Every bit of support keeps this project alive and evolving.
 
-**中文**
-
-很高兴这个项目能遇见你。
-
-我把它开源出来，是真心希望它能为你带来一点帮助。也许是节省一段摸索的时间，也许是解决一个棘手的问题，又或者是成为你前行的路上，一块小小的垫脚石。
-
-愿你始终勇敢，不负韶华，在属于自己的征途上披荆斩棘、一往无前。
-
-如果这个项目曾在某个时刻照亮过你，而你恰好有余力，欢迎请我喝杯咖啡，或者留下一份赞助。你的每一份支持，都会让这个工具走得更远，也让我更有动力把它打磨得更好。
-
-## Prerequisites / 前期准备
-
-| English | 中文 |
+| Method | Link |
 | --- | --- |
-| Windows PowerShell | Windows PowerShell |
-| Python 3.11+ available as `py` or `python` | Python 3.11+，可通过 `py` 或 `python` 调用 |
-| Codex desktop or another Codex setup that uses `%USERPROFILE%\.codex` | Codex desktop，或其他使用 `%USERPROFILE%\.codex` 的 Codex 环境 |
-| At least one readable local knowledge source | 至少一个可读取的本地知识源 |
+| WeChat | [![WeChat](https://img.shields.io/badge/WeChat-Kiiichi-07C160?logo=wechat&logoColor=white)](https://github.com/kiiichi/local-knowledge-bridge/raw/refs/heads/main/assets/sponsor-wechat.png) |
+| PayPal | [![PayPal](https://img.shields.io/badge/PayPal-Kiiichi-00457C?logo=paypal&logoColor=white)](https://www.paypal.com/paypalme/kiiichi) |
 
-Check Python / 检查 Python:
+## Prerequisites
 
-```powershell
-py -3 --version
-```
+| Requirement | Notes |
+| --- | --- |
+| Windows PowerShell | Used by the setup and deployed command wrappers |
+| Python 3.11+ available as `py` or `python` | Check with `py -3 --version` or `python --version` |
+| Codex desktop or another Codex setup that uses `%USERPROFILE%\.codex` | The installer deploys the skill and gateway under your Codex home |
+| At least one readable local knowledge source | Obsidian, EndNote, Zotero, or a local folder |
 
-If `py` is not available / 如果 `py` 不可用:
-
-```powershell
-python --version
-```
-
-## Quick Start / 快速启动
-
-**English**
+## Quick Start
 
 Double-click `lkb_setup.cmd` from the repo root, or run:
-
-**中文**
-
-在仓库根目录双击 `lkb_setup.cmd`，或在 PowerShell 中运行：
 
 ```powershell
 cd <repo>\local-knowledge-bridge
 .\lkb_setup.cmd
 ```
 
-The setup wizard asks whether to / 安装向导会询问你要执行哪一种操作:
+The setup wizard asks whether to:
 
-- configure the existing deployment / 配置已有部署
-- install or redeploy Local Knowledge Bridge / 安装或重新部署 Local Knowledge Bridge
+- configure the existing deployment
+- install or redeploy Local Knowledge Bridge
 
-### Setup Choices / 安装选项
+When the maintenance wizard asks for source paths, paste the raw path without quotes, even if the path contains spaces.
+
+## Setup Choices
 
 When installing or redeploying, `Copy` mode is the normal choice: it copies the gateway and skill into your Codex home so the installed tool stays stable. `Link` mode is mainly for development: the installed gateway and skill point back to this repo, so local source edits take effect without reinstalling.
 
-安装或重新部署时，`Copy` 模式是普通用户的默认选择：它会把 gateway 和 skill 复制到你的 Codex home，让已安装工具保持稳定。`Link` 模式主要用于开发：已安装的 gateway 和 skill 会指向当前仓库，因此本地源码改动不需要重新安装就能生效。
-
 `deep` mode is optional. It enables local embedding and reranking models for deeper semantic retrieval, but it requires extra dependencies and about 6 GB of model downloads under `gateway/.models/`. You can skip it at first and enable it later from the maintenance wizard; `fast` and `balanced` work without loading deep models.
-
-`deep` 模式是可选项。它会启用本地 embedding 和 reranking 模型，用于更深入的语义检索，但需要额外依赖，并会在 `gateway/.models/` 下下载约 6 GB 模型。你可以先跳过它，之后再从维护向导启用；`fast` 和 `balanced` 不需要加载 deep 模型也能使用。
 
 Configuration opens the deployed maintenance wizard. Use it to add or edit Obsidian, EndNote, Zotero, and folder sources, choose route-weight presets, configure deep retrieval, inspect status, and rebuild the database.
 
-选择配置后，会打开已部署的维护向导。你可以在其中添加或编辑 Obsidian、EndNote、Zotero 和文件夹数据源，选择 route-weight 预设，配置 deep 检索，查看状态，并重建数据库。
-
-### Use It In Codex / 在 Codex 中使用
+## Use It In Codex
 
 After setup, use natural language in Codex. Invoke `$Local Knowledge Bridge`, mention `Local Knowledge Bridge`, or include `lkb` anywhere in the prompt when you want Codex to search your configured local sources first.
 
-完成设置后，请在 Codex 中用自然语言使用它。当你希望 Codex 优先检索已配置的本地资料时，可以使用 `$Local Knowledge Bridge`，显式写出 `Local Knowledge Bridge`，或者在提示词中的任意位置加入 `lkb`。
+| Example |
+| --- |
+| `$Local Knowledge Bridge: find my notes on transformer model compression and summarize the main methods.` |
+| `Based on my Zotero and Obsidian sources, use lkb to find what I have on solid-state battery electrolyte materials.` |
+| `Compare my local notes on CRISPR off-target detection methods with Local Knowledge Bridge, and cite the sources you used.` |
+| `lkb, use deep mode to make a short report from my local papers about passive linear optics.` |
 
-| English example | 中文示例 |
-| --- | --- |
-| `$Local Knowledge Bridge: find my notes on transformer model compression and summarize the main methods.` | `$Local Knowledge Bridge：查找我关于 Transformer 模型压缩的笔记，并总结主要方法。` |
-| `Based on my Zotero and Obsidian sources, use lkb to find what I have on solid-state battery electrolyte materials.` | `基于我的 Zotero 和 Obsidian 资料，用 lkb 查找我关于固态电池电解质材料有哪些内容。` |
-| `Compare my local notes on CRISPR off-target detection methods with Local Knowledge Bridge, and cite the sources you used.` | `用 Local Knowledge Bridge 对比我本地关于 CRISPR 脱靶检测方法的笔记，并说明使用了哪些来源。` |
-| `lkb, use deep mode to make a short report from my local papers about passive linear optics.` | `lkb，使用 deep 模式，基于我的本地论文整理一份关于被动线性光学的简短报告。` |
-
-Run diagnostics from PowerShell / 在 PowerShell 中运行诊断:
+Run diagnostics from PowerShell:
 
 ```powershell
 $LKB = "$env:USERPROFILE\.codex\Function\local_knowledge_bridge"
@@ -263,7 +210,7 @@ nvidia-smi
 & "$LKB\runtime\py311\python.exe" -c "import torch; print(torch.__version__); print(torch.version.cuda); print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'no cuda')"
 ```
 
-## Enable Deep Mode Later / 后续启用 Deep 模式
+## Enable Deep Mode Later
 
 You can skip `deep` during the first install. To enable it later, run the setup entry again and choose the existing deployment path instead of redeploying:
 
@@ -290,10 +237,6 @@ $LKB = "$env:USERPROFILE\.codex\Function\local_knowledge_bridge"
 ```
 
 When `deep_status.ready` is `true`, use `--profile deep` in search, ask, or report commands.
-
-第一次安装时可以跳过 `deep`。之后如果要启用，请再次运行 `lkb_setup.cmd`，选择 `Configure existing deployment`，进入维护向导后打开 `Configure deep retrieval`，再执行 `Install deep dependencies and prefetch models`。
-
-默认模型约需下载 6 GB。预取过程中控制台会显示下载进度和速度。不要为了补装 `deep` 直接选择 `Install or redeploy`；重新部署用于替换已安装的 gateway 和 skill，只应在你确实要重装部署文件时使用。
 
 ## Development
 
