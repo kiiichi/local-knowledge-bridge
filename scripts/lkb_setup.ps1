@@ -71,8 +71,8 @@ Write-Host "Gateway   : $gatewayTarget"
 Write-Host "Path input: in the maintenance wizard, paste raw paths without quotes, even if they contain spaces."
 
 Write-Host ""
-Write-Host "1. Configure existing deployment"
-Write-Host "2. Install or redeploy"
+Write-Host "1. Configure existing deployment (source paths, deep setup, status, index rebuild)"
+Write-Host "2. Install or redeploy (replace deployed gateway/skill files)"
 $actionDefault = if (Test-Path -LiteralPath $wizardCmd) { '1' } else { '2' }
 $action = Read-Default -Prompt 'Select action' -Default $actionDefault
 if ($action -in @('1', 'configure', 'config')) {
@@ -102,6 +102,8 @@ $force = $false
 if (Test-Path -LiteralPath $gatewayTarget) {
   Write-Host ""
   Write-Host "Existing deployment detected: $gatewayTarget"
+  Write-Host "To enable deep later, choose Configure existing deployment instead of redeploy."
+  Write-Host "Redeploy replaces the installed gateway/skill files; machine-local state may need to be rebuilt."
   $force = Confirm-Setup -Prompt 'Redeploy and replace the existing gateway/skill install?' -Default $false
   if (-not $force) {
     Write-Host 'Setup cancelled before deployment.'
@@ -109,7 +111,10 @@ if (Test-Path -LiteralPath $gatewayTarget) {
   }
 }
 
-$installDeep = Confirm-Setup -Prompt 'Install deep dependencies and prefetch default models?' -Default $false
+Write-Host ""
+Write-Host "Deep mode is optional. It downloads about 6 GB of local models for semantic retrieval and reranking."
+Write-Host "You can skip it now and enable it later with: lkb_setup -> Configure existing deployment -> Configure deep retrieval."
+$installDeep = Confirm-Setup -Prompt 'Install deep dependencies and prefetch default models now?' -Default $false
 $openWizardAfterDeploy = Confirm-Setup -Prompt 'Open the maintenance wizard after deployment for source configuration and index rebuild?' -Default $true
 
 Write-Section 'Summary'

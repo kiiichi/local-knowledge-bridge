@@ -126,12 +126,18 @@ class WizardDeepAndActionTests(unittest.TestCase):
         self.assertEqual(config["retrieval"]["profile_default"], "deep")
 
     def test_deep_setup_requires_confirmation_before_subprocess(self) -> None:
-        app = wizard.Wizard(config={}, input_func=lambda prompt: "n", print_func=lambda *args, **kwargs: None)
+        printed: list[str] = []
+        app = wizard.Wizard(
+            config={},
+            input_func=lambda prompt: "n",
+            print_func=lambda *args, **kwargs: printed.append(" ".join(str(arg) for arg in args)),
+        )
 
         with patch.object(wizard, "run_logged_command") as run:
             self.assertFalse(app.run_deep_setup())
 
         run.assert_not_called()
+        self.assertTrue(any("about 6 GB" in line for line in printed))
 
     def test_index_rebuild_requires_confirmation_before_subprocess(self) -> None:
         app = wizard.Wizard(config={}, input_func=lambda prompt: "n", print_func=lambda *args, **kwargs: None)
@@ -263,6 +269,9 @@ class WizardWrapperTests(unittest.TestCase):
         self.assertIn("-PrefetchModels", text)
         self.assertIn("Open LKB maintenance wizard", text)
         self.assertIn("paste raw paths without quotes", text)
+        self.assertIn("downloads about 6 GB", text)
+        self.assertIn("Configure existing deployment -> Configure deep retrieval", text)
+        self.assertIn("choose Configure existing deployment instead of redeploy", text)
 
     def test_repo_setup_cmd_launches_script_with_bypass_and_pause_on_failure(self) -> None:
         text = (GATEWAY_ROOT.parent / "lkb_setup.cmd").read_text(encoding="utf-8")

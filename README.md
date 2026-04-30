@@ -123,9 +123,9 @@ When installing or redeploying, `Copy` mode is the normal choice: it copies the 
 
 安装或重新部署时，`Copy` 模式是普通用户的默认选择：它会把 gateway 和 skill 复制到你的 Codex home，让已安装工具保持稳定。`Link` 模式主要用于开发：已安装的 gateway 和 skill 会指向当前仓库，因此本地源码改动不需要重新安装就能生效。
 
-`deep` mode is optional. It enables local embedding and reranking models for deeper semantic retrieval, but it requires extra dependencies and model downloads under `gateway/.models/`. You can skip it at first; `fast` and `balanced` work without loading deep models.
+`deep` mode is optional. It enables local embedding and reranking models for deeper semantic retrieval, but it requires extra dependencies and about 6 GB of model downloads under `gateway/.models/`. You can skip it at first and enable it later from the maintenance wizard; `fast` and `balanced` work without loading deep models.
 
-`deep` 模式是可选项。它会启用本地 embedding 和 reranking 模型，用于更深入的语义检索，但需要额外依赖，并会在 `gateway/.models/` 下下载模型。你可以先跳过它；`fast` 和 `balanced` 不需要加载 deep 模型也能使用。
+`deep` 模式是可选项。它会启用本地 embedding 和 reranking 模型，用于更深入的语义检索，但需要额外依赖，并会在 `gateway/.models/` 下下载约 6 GB 模型。你可以先跳过它，之后再从维护向导启用；`fast` 和 `balanced` 不需要加载 deep 模型也能使用。
 
 Configuration opens the deployed maintenance wizard. Use it to add or edit Obsidian, EndNote, Zotero, and folder sources, choose route-weight presets, configure deep retrieval, inspect status, and rebuild the database.
 
@@ -262,6 +262,38 @@ If you want GPU deep retrieval, confirm the embedded runtime can see CUDA:
 nvidia-smi
 & "$LKB\runtime\py311\python.exe" -c "import torch; print(torch.__version__); print(torch.version.cuda); print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'no cuda')"
 ```
+
+## Enable Deep Mode Later / 后续启用 Deep 模式
+
+You can skip `deep` during the first install. To enable it later, run the setup entry again and choose the existing deployment path instead of redeploying:
+
+```powershell
+cd <repo>\local-knowledge-bridge
+.\lkb_setup.cmd
+```
+
+Select these wizard options:
+
+1. `Configure existing deployment`
+2. `Configure deep retrieval`
+3. `Install deep dependencies and prefetch models`
+
+This downloads about 6 GB for the default `BAAI/bge-m3` embedding model and `BAAI/bge-reranker-v2-m3` reranker. The console shows download progress and speed during the prefetch step.
+
+Do not choose `Install or redeploy` just to add `deep`; redeploy is for replacing the installed gateway and skill. Use redeploy only when you intentionally want to reinstall the deployed files.
+
+Check readiness after the download:
+
+```powershell
+$LKB = "$env:USERPROFILE\.codex\Function\local_knowledge_bridge"
+& "$LKB\lkb_doctor.cmd" --json
+```
+
+When `deep_status.ready` is `true`, use `--profile deep` in search, ask, or report commands.
+
+第一次安装时可以跳过 `deep`。之后如果要启用，请再次运行 `lkb_setup.cmd`，选择 `Configure existing deployment`，进入维护向导后打开 `Configure deep retrieval`，再执行 `Install deep dependencies and prefetch models`。
+
+默认模型约需下载 6 GB。预取过程中控制台会显示下载进度和速度。不要为了补装 `deep` 直接选择 `Install or redeploy`；重新部署用于替换已安装的 gateway 和 skill，只应在你确实要重装部署文件时使用。
 
 ## Development
 

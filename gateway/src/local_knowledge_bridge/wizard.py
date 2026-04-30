@@ -597,6 +597,8 @@ class Wizard:
     def run_deep_setup(self) -> bool:
         if not self._save_before_action("Deep setup"):
             return False
+        self.print("Deep mode is optional and downloads about 6 GB of local models.")
+        self.print("You can skip this now and run the same wizard action later.")
         if not self.confirm("Install deep dependencies and prefetch models now?"):
             return False
         command = [
