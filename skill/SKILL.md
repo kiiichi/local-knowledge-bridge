@@ -75,6 +75,12 @@ Profiles:
 4. Refresh once before a query sequence only when the user asks to refresh or sources are likely stale.
 5. Separate direct local evidence from inference in the answer.
 
+Natural-language shorthand:
+
+- `lkbsearch` means raw retrieval with `lkb_search.cmd`.
+- `lkbreport` means structured evidence review with `lkb_report.cmd`.
+- `lkbask` means cited answer synthesis with `lkb_ask.cmd`.
+
 Primary answer:
 
 ```powershell
@@ -129,7 +135,13 @@ C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_bootstrap_runtime.cmd
 - `use lkb to search passive linear optics`
 - `answer with lkb`
 - `search my local notes with lkb`
+- `lkbsearch my Zotero and Obsidian sources for solid-state battery electrolyte materials`
+- `lkbreport, use deep mode to make an evidence report about passive linear optics`
+- `lkbask: compare my local notes on CRISPR off-target detection methods and cite the sources`
 - `用 lkb 检索 passive linear optics`
+- `lkbsearch，在我的 Zotero 和 Obsidian 资料中查找固态电池电解质材料`
+- `lkbreport，使用 deep 模式整理一份关于被动线性光学的证据报告`
+- `lkbask：对比我本地关于 CRISPR 脱靶检测方法的笔记并引用来源`
 - `基于 lkb 回答这个问题`
 
 ## Behavior Notes

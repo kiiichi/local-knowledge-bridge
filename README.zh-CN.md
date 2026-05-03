@@ -110,14 +110,24 @@ $LKB = "$env:USERPROFILE\.codex\Function\local_knowledge_bridge"
 
 ### 在 Codex 中使用
 
-完成设置后，请在 Codex 中用自然语言使用它。当你希望 Codex 优先检索已配置的本地资料时，可以使用 `$Local Knowledge Bridge`，显式写出 `Local Knowledge Bridge`，或者在提示词中的任意位置加入 `lkb`。
+完成设置后，请在 Codex 中用自然语言使用它。当你希望 Codex 优先检索已配置的本地资料时，可以使用 `$Local Knowledge Bridge`，显式写出 `Local Knowledge Bridge`，或者在提示词中的任意位置加入 `lkb`。你也可以使用 `lkbsearch`、`lkbreport` 和 `lkbask` 这三个简写触发词，明确告诉 Codex 你想要哪种输出。
 
-| 示例 |
-| --- |
-| `$Local Knowledge Bridge：查找我关于 Transformer 模型压缩的笔记，并总结主要方法。` |
-| `基于我的 Zotero 和 Obsidian 资料，用 lkb 查找我关于固态电池电解质材料有哪些内容。` |
-| `用 Local Knowledge Bridge 对比我本地关于 CRISPR 脱靶检测方法的笔记，并说明使用了哪些来源。` |
-| `lkb，使用 deep 模式，基于我的本地论文整理一份关于被动线性光学的简短报告。` |
+| 你想做什么 | 示例提示词 |
+| --- | --- |
+| 快速本地查找 | `$Local Knowledge Bridge：查找我关于 Transformer 模型压缩的笔记，并总结主要方法。` |
+| 原始候选检索 | `lkbsearch，在我的 Zotero 和 Obsidian 资料中查找固态电池电解质材料。` |
+| 证据报告 | `lkbreport，使用 deep 模式，基于我的本地论文整理一份关于被动线性光学的简短证据报告。` |
+| 带引用回答 | `lkbask：对比我本地关于 CRISPR 脱靶检测方法的笔记，并说明使用了哪些来源。` |
+
+这些简写触发词是给 Codex 自然语言使用的；日常使用时不需要手动运行 PowerShell 命令。
+
+| 触发词 | 输出特点 | 来源处理方式 |
+| --- | --- | --- |
+| `lkbsearch` | 输出按相关度排序的本地候选材料列表，包含片段和路径。适合你想先看看本地有哪些资料，或想自己打开候选来源继续检查。 | `DATA SOURCES` 可以列出所有已展示命中；编号按最终检索排序去重后生成。 |
+| `lkbreport` | 输出结构化证据综述，先汇集最强的本地匹配，再帮助你比较来源或审查证据基础。 | `DATA SOURCES` 可以列出所有已展示证据命中，因为 report 本身就是证据面。 |
+| `lkbask` | 输出基于本地证据写成的简洁回答。适合你想要最终解释、判断或可直接使用的文字回答。 | `DATA SOURCES` 应只列正文实际引用过的来源；有帮助但未引用的候选命中应放入 `ADDITIONAL RETRIEVED SOURCES`。 |
+
+同一次输出中的来源编号应全局唯一，例如 `[1]`、`[2]`、`[3]`，不要在 `Literature`、`Documents` 或其他来源分组中重新编号。对于 `lkbask`，正文中的事实判断和分析推理应使用同一套编号引用本地证据，例如 `……[1]` 或 `根据 [1], [3] 可以推断……`。
 
 在 PowerShell 中运行诊断：
 
@@ -131,9 +141,9 @@ $LKB = "$env:USERPROFILE\.codex\Function\local_knowledge_bridge"
 主要部署命令：
 
 - `lkb_wizard.cmd` - 维护向导，用于数据源配置、route weight、deep 设置和索引重建
-- `lkb_search.cmd` - 原始检索结果
-- `lkb_ask.cmd` - 基于本地证据生成回答
-- `lkb_report.cmd` - 基于检索证据生成结构化报告
+- `lkb_search.cmd` - 原始检索结果，用于检查候选来源
+- `lkb_report.cmd` - 基于检索材料生成结构化证据报告
+- `lkb_ask.cmd` - 基于已引用本地证据生成回答
 - `lkb_index.cmd` / `lkb_refresh.cmd` - 索引状态和重建
 - `lkb_doctor.cmd` - 数据源、索引、服务、版本和 deep 诊断
 - `lkb_bootstrap_runtime.cmd` - 嵌入式运行时修复，以及可选 deep 模型预取
@@ -146,7 +156,7 @@ $LKB = "$env:USERPROFILE\.codex\Function\local_knowledge_bridge"
 - `zotero`
 - `folder`
 
-检索配置：
+检索配置（profiles）：
 
 - `fast` - 轻量本地检索，适合快速回答，默认使用
 - `balanced` - 更广的轻量检索

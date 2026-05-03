@@ -110,24 +110,24 @@ When `deep_status.ready` is `true`, use `--profile deep` in search, ask, or repo
 
 ### Use It In Codex
 
-After setup, use natural language in Codex. Invoke `$Local Knowledge Bridge`, mention `Local Knowledge Bridge`, or include `lkb` anywhere in the prompt when you want Codex to search your configured local sources first.
+After setup, use natural language in Codex. Invoke `$Local Knowledge Bridge`, mention `Local Knowledge Bridge`, or include `lkb` anywhere in the prompt when you want Codex to search your configured local sources first. You can also use the shorthand trigger words `lkbsearch`, `lkbreport`, and `lkbask` to make the intended output style explicit.
 
-| Example |
-| --- |
-| `$Local Knowledge Bridge: find my notes on transformer model compression and summarize the main methods.` |
-| `Based on my Zotero and Obsidian sources, use lkb to find what I have on solid-state battery electrolyte materials.` |
-| `Compare my local notes on CRISPR off-target detection methods with Local Knowledge Bridge, and cite the sources you used.` |
-| `lkb, use deep mode to make a short report from my local papers about passive linear optics.` |
+| What you want | Example prompt |
+| --- | --- |
+| Quick local lookup | `$Local Knowledge Bridge: find my notes on transformer model compression and summarize the main methods.` |
+| Raw candidate search | `lkbsearch my Zotero and Obsidian sources for solid-state battery electrolyte materials.` |
+| Evidence review | `lkbreport, use deep mode to make a short evidence report from my local papers about passive linear optics.` |
+| Cited answer | `lkbask: compare my local notes on CRISPR off-target detection methods and cite the sources you used.` |
 
-Choose the LKB output surface that matches the task:
+The shorthand triggers are for natural-language use in Codex; you do not need to run PowerShell commands for everyday work.
 
-| Mode | Best for | Command | Source policy |
-| --- | --- | --- | --- |
-| Raw retrieval | Finding and opening candidate local materials. Use this when recall and inspection are more important than a polished answer. | `lkb_search.cmd` | `DATA SOURCES` may list all displayed hits, numbered by final retrieval rank after de-duplication. |
-| Evidence report | Reviewing the strongest evidence before writing, comparing sources, or checking what the index found. | `lkb_report.cmd` | `DATA SOURCES` may list all displayed evidence hits because the report is an evidence surface. |
-| Answer synthesis | Producing a concise answer grounded in local evidence. Use this for final explanations, decisions, and prose answers. | `lkb_ask.cmd` | `DATA SOURCES` should list only sources cited in the answer body. Useful uncited hits should be separated as `ADDITIONAL RETRIEVED SOURCES`. |
+| Trigger | What you get | Source behavior |
+| --- | --- | --- |
+| `lkbsearch` | A ranked list of matching local materials with snippets and paths. Choose this when you want to inspect what exists or open candidate sources yourself. | `DATA SOURCES` may include all displayed hits, numbered by final retrieval rank after de-duplication. |
+| `lkbreport` | A structured evidence review that gathers the strongest local matches before you write or decide. Choose this when you want to compare sources or audit the evidence base. | `DATA SOURCES` may include all displayed evidence hits because the report is an evidence surface. |
+| `lkbask` | A concise answer written from local evidence. Choose this when you want a final explanation, decision, or prose answer. | `DATA SOURCES` should list only sources cited in the answer body. Useful uncited hits should be separated as `ADDITIONAL RETRIEVED SOURCES`. |
 
-Source numbers are global within an output, such as `[1]`, `[2]`, `[3]`, and should not restart inside `Literature`, `Documents`, or other source-family sections. For `lkb_ask`, use the same numbers inline for claims and analysis that depend on local evidence, for example `... [1]` or `Inference from [1], [3]`.
+Source numbers are global within an output, such as `[1]`, `[2]`, `[3]`, and should not restart inside `Literature`, `Documents`, or other source-family sections. For `lkbask`, the answer should use the same numbers inline for claims and analysis that depend on local evidence, for example `... [1]` or `Inference from [1], [3]`.
 
 Run diagnostics from PowerShell:
 
