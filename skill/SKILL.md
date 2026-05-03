@@ -111,8 +111,10 @@ C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_bootstrap_runtime.cmd
 
 - Every answer grounded in LKB results must end with a `DATA SOURCES` section.
 - Number every unique source in `DATA SOURCES` with a stable global bracket number, such as `[1]`, `[2]`, `[3]`. Do not restart numbering inside `Literature`, `Documents`, or other source-family subsections.
-- Use those same bracket numbers in the answer body. Any claim, analysis sentence, or model inference that depends on local evidence should cite the supporting source number inline, for example `... [1]` or `Inference from [1], [3]`.
-- Keep direct local evidence separate from model inference, but cite both sections with the same source numbers.
+- For `lkb_ask` answer synthesis, `DATA SOURCES` should list only sources cited in the answer body. If useful uncited retrieval hits are worth showing for exploration, put them under `ADDITIONAL RETRIEVED SOURCES`, not `DATA SOURCES`.
+- For `lkb_search` raw retrieval and `lkb_report` evidence review, `DATA SOURCES` may list all displayed hits because those commands are retrieval/evidence surfaces.
+- Use the same bracket numbers inline in answer prose. Any claim, analysis sentence, or model inference that depends on local evidence should cite supporting source numbers, for example `... [1]` or `Inference from [1], [3]`.
+- Keep direct local evidence separate from model inference, and cite both sections with the same source numbers when they depend on local evidence.
 - For literature-backed evidence, include the complete indexed title and DOI when available.
 - For non-literature documents, include the original source file name without translating it and the document path.
 - Include locators where available so the cited passage can be found again.

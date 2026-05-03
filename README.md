@@ -119,6 +119,16 @@ After setup, use natural language in Codex. Invoke `$Local Knowledge Bridge`, me
 | `Compare my local notes on CRISPR off-target detection methods with Local Knowledge Bridge, and cite the sources you used.` |
 | `lkb, use deep mode to make a short report from my local papers about passive linear optics.` |
 
+Choose the LKB output surface that matches the task:
+
+| Mode | Best for | Command | Source policy |
+| --- | --- | --- | --- |
+| Raw retrieval | Finding and opening candidate local materials. Use this when recall and inspection are more important than a polished answer. | `lkb_search.cmd` | `DATA SOURCES` may list all displayed hits, numbered by final retrieval rank after de-duplication. |
+| Evidence report | Reviewing the strongest evidence before writing, comparing sources, or checking what the index found. | `lkb_report.cmd` | `DATA SOURCES` may list all displayed evidence hits because the report is an evidence surface. |
+| Answer synthesis | Producing a concise answer grounded in local evidence. Use this for final explanations, decisions, and prose answers. | `lkb_ask.cmd` | `DATA SOURCES` should list only sources cited in the answer body. Useful uncited hits should be separated as `ADDITIONAL RETRIEVED SOURCES`. |
+
+Source numbers are global within an output, such as `[1]`, `[2]`, `[3]`, and should not restart inside `Literature`, `Documents`, or other source-family sections. For `lkb_ask`, use the same numbers inline for claims and analysis that depend on local evidence, for example `... [1]` or `Inference from [1], [3]`.
+
 Run diagnostics from PowerShell:
 
 ```powershell
@@ -131,9 +141,9 @@ $LKB = "$env:USERPROFILE\.codex\Function\local_knowledge_bridge"
 Main deployed commands:
 
 - `lkb_wizard.cmd` - maintenance wizard for source configuration, route weights, deep setup, and index rebuilds
-- `lkb_search.cmd` - raw retrieval results
-- `lkb_ask.cmd` - answer synthesis from local evidence
-- `lkb_report.cmd` - structured report from retrieved evidence
+- `lkb_search.cmd` - raw retrieval results for candidate-source inspection
+- `lkb_report.cmd` - structured evidence report from retrieved materials
+- `lkb_ask.cmd` - answer synthesis from cited local evidence
 - `lkb_index.cmd` / `lkb_refresh.cmd` - index status and rebuilds
 - `lkb_doctor.cmd` - source, index, service, version, and deep diagnostics
 - `lkb_bootstrap_runtime.cmd` - embedded runtime repair and optional deep model prefetch
@@ -146,7 +156,7 @@ Search targets:
 - `zotero`
 - `folder`
 
-Profiles:
+Retrieval profiles:
 
 - `fast` - lightweight local retrieval, default for quick answers
 - `balanced` - broader lightweight retrieval
