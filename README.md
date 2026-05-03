@@ -110,22 +110,44 @@ When `deep_status.ready` is `true`, use `--profile deep` in search, ask, or repo
 
 ### Use It In Codex
 
-After setup, use natural language in Codex. Invoke `$Local Knowledge Bridge`, mention `Local Knowledge Bridge`, or include `lkb` anywhere in the prompt when you want Codex to search your configured local sources first. You can also use the shorthand trigger words `lkbsearch`, `lkbreport`, and `lkbask` to make the intended output style explicit.
+After setup, use natural language in Codex. Include `lkb` in your question or task, or explicitly invoke the `$Local Knowledge Bridge` skill, to make Codex search your configured local sources first. You can also use `lkbsearch`, `lkbreport`, and `lkbask` to tell Codex what kind of output you want, or use `fast`, `balanced`/`balance`, or `deep` to specify search depth.
 
-| What you want | Example prompt |
-| --- | --- |
-| Quick local lookup | `$Local Knowledge Bridge: find my notes on transformer model compression and summarize the main methods.` |
-| Raw candidate search | `lkbsearch my Zotero and Obsidian sources for solid-state battery electrolyte materials.` |
-| Evidence review | `lkbreport, use deep mode to make a short evidence report from my local papers about passive linear optics.` |
-| Cited answer | `lkbask: compare my local notes on CRISPR off-target detection methods and cite the sources you used.` |
+For everyday use, think of an LKB request as two independent choices:
 
-The shorthand triggers are for natural-language use in Codex; you do not need to run PowerShell commands for everyday work.
+1. Search mode: what kind of output you want.
+2. Search depth: how hard LKB should search.
 
-| Trigger | What you get | Source behavior |
+Both choices can be automatic. If you are unsure, just write `lkb` plus your question and let Codex choose. If you want more control, specify the mode, the depth, or both in the same prompt.
+
+Search mode controls the output shape. The easiest way to choose is to describe the job you want LKB to do:
+
+| Situation | Use | What LKB should do | Source behavior |
+| --- | --- | --- | --- |
+| "I am not sure what output form I need. Please look in my local sources and help me." | `lkb` or `$Local Knowledge Bridge` | Codex chooses search, report, or answer synthesis based on your request. Start here if you are not sure. | Source handling follows the mode Codex chooses. |
+| "I want to list the main intellectual currents discussed during World War II." | `lkbsearch` | Return a ranked list of candidate local materials with snippets and paths, so you can see what exists and open sources yourself. | `DATA SOURCES` may include all displayed hits, numbered by final retrieval rank after de-duplication. |
+| "I want to put those World War II intellectual currents in chronological order by when they were most actively discussed." | `lkbreport` | Build a structured evidence review, compare sources, and organize the retrieved evidence before you write or decide. | `DATA SOURCES` may include all displayed evidence hits because the report is an evidence surface. |
+| "I want to analyze what those intellectual currents have in common." | `lkbask` | Write a concise answer from local evidence, with citations attached to the claims and analysis. | `DATA SOURCES` should list only sources cited in the answer body. Useful uncited hits should be separated as `ADDITIONAL RETRIEVED SOURCES`. |
+
+Search depth controls retrieval effort:
+
+| Search depth | How to ask for it | Best for |
 | --- | --- | --- |
-| `lkbsearch` | A ranked list of matching local materials with snippets and paths. Choose this when you want to inspect what exists or open candidate sources yourself. | `DATA SOURCES` may include all displayed hits, numbered by final retrieval rank after de-duplication. |
-| `lkbreport` | A structured evidence review that gathers the strongest local matches before you write or decide. Choose this when you want to compare sources or audit the evidence base. | `DATA SOURCES` may include all displayed evidence hits because the report is an evidence surface. |
-| `lkbask` | A concise answer written from local evidence. Choose this when you want a final explanation, decision, or prose answer. | `DATA SOURCES` should list only sources cited in the answer body. Useful uncited hits should be separated as `ADDITIONAL RETRIEVED SOURCES`. |
+| Automatic | Leave depth unspecified, or write `auto` in a Codex prompt. | Letting Codex choose based on the task. This is the safest default for new users. |
+| Fast | `fast` | Quick checks, simple questions, and low-latency lookups. |
+| Balanced | `balanced`; `balance` is fine in natural language | Broader recall without loading deep models. Use this when you want a more complete local pass. |
+| Deep | `deep` | Local semantic retrieval and reranking. Use this for nuanced research questions, literature review, or when wording differs between your question and the source text. Requires deep setup. |
+
+You can combine mode and depth naturally:
+
+| Combination | Example prompt |
+| --- | --- |
+| Automatic mode + automatic depth | `lkb what do my notes say about transformer model compression?` |
+| Automatic mode + explicit depth | `lkb deep, summarize my local sources on continuous-variable cluster states.` |
+| Explicit mode + automatic depth | `lkbsearch list the main intellectual currents discussed during World War II.` |
+| Search + balanced depth | `lkbsearch balanced, find local sources about passive linear optics.` |
+| Report + deep depth | `lkbreport deep, put the World War II intellectual currents in chronological order by when they were most discussed.` |
+| Ask + fast depth | `lkbask fast: what is the main conclusion of my notes on CRISPR off-target detection?` |
+| Ask + deep depth | `lkbask deep: based on my EndNote and Obsidian sources, do CV cluster states without edges have quantum correlations?` |
 
 Source numbers are global within an output, such as `[1]`, `[2]`, `[3]`, and should not restart inside `Literature`, `Documents`, or other source-family sections. For `lkbask`, the answer should use the same numbers inline for claims and analysis that depend on local evidence, for example `... [1]` or `Inference from [1], [3]`.
 
@@ -158,6 +180,7 @@ Search targets:
 
 Retrieval profiles:
 
+- `auto` - natural-language shorthand for letting Codex choose a profile; in CLI use, omit `--profile` unless you want to specify one explicitly
 - `fast` - lightweight local retrieval, default for quick answers
 - `balanced` - broader lightweight retrieval
 - `deep` - semantic scoring and reranking with local models

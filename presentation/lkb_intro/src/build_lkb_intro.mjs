@@ -82,7 +82,7 @@ const script = [
   {
     title: "主要功能",
     text:
-      "日常使用时，你不用记一堆命令。在 Codex 里写 Local Knowledge Bridge，或者直接写 lkb，它就会去 Obsidian、Zotero、EndNote 和本地文件夹里找证据。它支持 fast、balanced 和可选 deep 三种方式，既能快速查找，也能做更深入的本地语义检索。",
+      "日常使用时，你不用记一堆命令。提出问题时写 lkb，或者显式调用 Local Knowledge Bridge，就能启用本地检索。如果想更明确，可以写 lkbsearch、lkbreport、lkbask 来选择输出形式，也可以写 fast、balanced 或 deep 来指定搜索深度。",
   },
   {
     title: "底层原理与优点",
@@ -92,7 +92,7 @@ const script = [
   {
     title: "部署和使用",
     text:
-      "部署也尽量简单。第一步，下载项目并解压；第二步，在 local-knowledge-bridge 目录运行 lkb_setup.cmd，然后按向导添加数据源。之后就像聊天一样提问，例如查 Transformer 压缩笔记，或让 lkb 基于本地论文整理报告。资料仍在本机，AI 终于能用上它们。",
+      "部署也尽量简单。第一步，下载项目并解压；第二步，在 local-knowledge-bridge 目录运行 lkb_setup.cmd，然后按向导添加数据源。之后就像聊天一样提问：想罗列材料用 lkbsearch，想整理证据脉络用 lkbreport，想得到带引用的分析回答用 lkbask。",
   },
 ];
 
@@ -384,13 +384,13 @@ addSlide(
       },
       [
         column({ name: "feature-title-stack", width: fill, height: hug, gap: 14 }, [
-          text("主要功能：让本地知识先上场", {
+          text("使用方式：先选输出，再选深度", {
             name: "slide-2-title",
             width: fill,
             height: hug,
             style: titleStyle(62, C.ink),
           }),
-          text("不用手动翻文件夹；在 Codex 里写 Local Knowledge Bridge 或 lkb，就能把本地证据带进回答。", {
+          text("最简单：直接写 lkb 让 Codex 自动判断。想更明确：用 lkbsearch / lkbreport / lkbask 指定输出，用 fast / balanced / deep 指定搜索深度。", {
             name: "slide-2-subtitle",
             width: wrap(1260),
             height: hug,
@@ -409,26 +409,26 @@ addSlide(
           [
             featureStep(
               1,
-              "接入资料源",
-              "Obsidian、EndNote、Zotero，以及本地文件夹统一进入检索层。",
+              "自动模式",
+              "不确定怎么选时，写 lkb 加问题，让 Codex 自动选择输出和深度。",
               C.teal,
             ),
             featureStep(
               2,
-              "读取常见文件",
-              "PDF、MD、TXT、PPTX、DOCX、XLSX 都能成为可检索材料。",
+              "lkbsearch",
+              "想罗列候选材料，例如“二战期间有哪些主流思潮”。",
               C.orange,
             ),
             featureStep(
               3,
-              "选择检索深度",
-              "fast 快速查找，balanced 扩展证据，deep 做本地语义检索。",
+              "lkbreport",
+              "想整理证据脉络，例如“按热烈讨论的时间排先后”。",
               C.blue,
             ),
             featureStep(
               4,
-              "带证据回答",
-              "先查你的笔记、论文、批注和文档，再组织成可追溯答案。",
+              "lkbask",
+              "想得到分析结论，例如“这些思潮有什么共性”。",
               C.green,
             ),
           ],
@@ -441,7 +441,7 @@ addSlide(
             fill: C.teal,
             borderRadius: 7,
           }),
-          text("核心体验：像平常聊天一样提问，但答案会先从自己的资料里找依据。", {
+          text("搜索深度也能自动；需要时再显式写 fast、balanced / balance 或 deep。", {
             name: "feature-bottom-copy",
             width: fill,
             height: hug,
@@ -561,13 +561,13 @@ addSlide(
       },
       [
         column({ name: "deploy-title-stack", width: fill, height: hug, gap: 12, columnSpan: 2 }, [
-          text("部署和使用：两步装好，直接开问", {
+          text("部署和使用：装好后，用自然语言触发", {
             name: "slide-4-title",
             width: fill,
             height: hug,
             style: titleStyle(60, C.ink),
           }),
-          text("README 的推荐入口很明确：先下载解压，再运行安装向导。", {
+          text("包含 lkb 或调用 skill 即可自动检索；也可以显式写搜索模式和搜索深度。", {
             name: "slide-4-subtitle",
             width: wrap(1040),
             height: hug,
@@ -651,9 +651,9 @@ addSlide(
             height: hug,
             style: titleStyle(36, C.ink),
           }),
-          exampleLine("$Local Knowledge Bridge：查找我关于 Transformer 模型压缩的笔记，并总结主要方法。", C.teal),
-          exampleLine("基于我的 Zotero 和 Obsidian 资料，用 lkb 查找我关于固态电池电解质材料有哪些内容。", C.orange),
-          exampleLine("lkb，使用 deep 模式，基于我的本地论文整理一份关于被动线性光学的简短报告。", C.blue),
+          exampleLine("lkbsearch，罗列二战期间被讨论过的主流思潮。", C.teal),
+          exampleLine("lkbreport deep，把这些思潮被热烈讨论的时间排成先后顺序。", C.orange),
+          exampleLine("lkbask deep，分析这些思潮之间有什么共性，并引用来源。", C.blue),
         ]),
         text("使用示例依据 local-knowledge-bridge/README.zh-CN.md。", {
           name: "slide-4-footer",

@@ -8,7 +8,7 @@
 
 ## 第 2 页：主要功能
 
-日常使用时，你不用记一堆命令。在 Codex 里写 Local Knowledge Bridge，或者直接写 lkb，它就会去 Obsidian、Zotero、EndNote 和本地文件夹里找证据。它支持 fast、balanced 和可选 deep 三种方式，既能快速查找，也能做更深入的本地语义检索。
+日常使用时，你不用记一堆命令。提出问题时写 lkb，或者显式调用 Local Knowledge Bridge，就能启用本地检索。如果想更明确，可以写 lkbsearch、lkbreport、lkbask 来选择输出形式，也可以写 fast、balanced 或 deep 来指定搜索深度。
 
 ## 第 3 页：底层原理与优点
 
@@ -16,4 +16,4 @@
 
 ## 第 4 页：部署和使用
 
-部署也尽量简单。第一步，下载项目并解压；第二步，在 local-knowledge-bridge 目录运行 lkb_setup.cmd，然后按向导添加数据源。之后就像聊天一样提问，例如查 Transformer 压缩笔记，或让 lkb 基于本地论文整理报告。资料仍在本机，AI 终于能用上它们。
+部署也尽量简单。第一步，下载项目并解压；第二步，在 local-knowledge-bridge 目录运行 lkb_setup.cmd，然后按向导添加数据源。之后就像聊天一样提问：想罗列材料用 lkbsearch，想整理证据脉络用 lkbreport，想得到带引用的分析回答用 lkbask。

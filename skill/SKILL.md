@@ -77,9 +77,12 @@ Profiles:
 
 Natural-language shorthand:
 
+- `lkb` means automatic output mode and automatic depth unless the user specifies otherwise.
 - `lkbsearch` means raw retrieval with `lkb_search.cmd`.
 - `lkbreport` means structured evidence review with `lkb_report.cmd`.
 - `lkbask` means cited answer synthesis with `lkb_ask.cmd`.
+- `auto` means let Codex choose the retrieval profile; for CLI usage, omit `--profile`.
+- `fast`, `balanced`, and `deep` explicitly select retrieval depth. Treat `balance` in natural language as `balanced`.
 
 Primary answer:
 
@@ -135,13 +138,19 @@ C:\Users\<user>\.codex\Function\local_knowledge_bridge\lkb_bootstrap_runtime.cmd
 - `use lkb to search passive linear optics`
 - `answer with lkb`
 - `search my local notes with lkb`
+- `lkb deep, summarize my local sources on continuous-variable cluster states`
 - `lkbsearch my Zotero and Obsidian sources for solid-state battery electrolyte materials`
+- `lkbsearch balanced, find local sources about passive linear optics`
 - `lkbreport, use deep mode to make an evidence report about passive linear optics`
 - `lkbask: compare my local notes on CRISPR off-target detection methods and cite the sources`
+- `lkbask fast: what is the main conclusion of my notes on CRISPR off-target detection`
 - `用 lkb 检索 passive linear optics`
+- `lkb deep，总结我的本地资料中关于连续变量簇态的内容`
 - `lkbsearch，在我的 Zotero 和 Obsidian 资料中查找固态电池电解质材料`
+- `lkbsearch balanced，查找本地关于被动线性光学的资料`
 - `lkbreport，使用 deep 模式整理一份关于被动线性光学的证据报告`
 - `lkbask：对比我本地关于 CRISPR 脱靶检测方法的笔记并引用来源`
+- `lkbask fast：我的 CRISPR 脱靶检测笔记的主要结论是什么`
 - `基于 lkb 回答这个问题`
 
 ## Behavior Notes
